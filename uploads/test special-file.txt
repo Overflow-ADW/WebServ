@@ -1,0 +1,1 @@
+This is a test file with special chars: éàü and spaces in filename!

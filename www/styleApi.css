@@ -1,0 +1,153 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "JetBrains Mono", monospace;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.subtitle {
+  color: #888;
+  margin-top: 0.5rem;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.status-card {
+  background: #222;
+  border: 2px solid #333;
+  padding: 1.5rem;
+  transition: transform 0.3s;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.card-icon {
+  margin-right: 1rem;
+  font-size: 1.5rem;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00ff41;
+  margin-left: auto;
+}
+
+.status-info {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.status-value {
+  color: #00ff41;
+  font-weight: 700;
+}
+
+.features-list {
+  list-style: none;
+}
+
+.features-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #333;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.features-list li::before {
+  content: ">";
+  position: absolute;
+  left: 0;
+  color: #00ff41;
+}
+
+.json-display {
+  background: #222;
+  border: 2px solid #333;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.json-display::before {
+  content: "API_DATA.json";
+  position: absolute;
+  top: -2px;
+  right: 10px;
+  background: #1a1a1a;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  border: 2px solid #333;
+  border-top: none;
+}
+
+.back-button {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  background: #333;
+  color: white;
+  text-decoration: none;
+  border: 2px solid #444;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2rem;
+}
+
+.back-button:hover {
+  background: #444;
+  border-color: #00ff41;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+@media (max-width: 768px) {
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: 2.5rem;
+  }
+}

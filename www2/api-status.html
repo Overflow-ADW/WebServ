@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API.STATUS - SYSTEM DIAGNOSTICS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --neon-green: #00ff41;
+            --neon-blue: #0080ff;
+            --neon-purple: #8000ff;
+            --neon-orange: #ff8000;
+            --matrix-black: #0d1117;
+            --matrix-dark: #161b22;
+            --terminal-white: #f0f6fc;
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--matrix-black);
+            color: var(--neon-green);
+            min-height: 100vh;
+            padding: 2rem;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 65, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 128, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(128, 0, 255, 0.1) 0%, transparent 50%);
+        }
+        
+        .terminal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 255, 65, 0.03) 2px,
+                    rgba(0, 255, 65, 0.03) 4px
+                );
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: glitch 3s infinite;
+        }
+        
+        .title {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--neon-green);
+            text-shadow: 
+                0 0 10px var(--neon-green),
+                0 0 20px var(--neon-green),
+                0 0 40px var(--neon-green);
+            letter-spacing: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .status-card {
+            background: var(--matrix-dark);
+            border: 2px solid var(--neon-green);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .status-card:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 65, 0.3),
+                inset 0 0 20px rgba(0, 255, 65, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.1), transparent);
+            transition: all 0.5s;
+        }
+        
+        .status-card:hover::before {
+            left: 100%;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-blue);
+        }
+        
+        .card-icon {
+            margin-right: 1rem;
+            font-size: 2rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: pulse 2s infinite;
+            margin-left: auto;
+        }
+        
+        .status-info {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .status-value {
+            color: var(--neon-orange);
+            font-weight: 700;
+        }
+        
+        .features-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+        
+        .features-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .features-list li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--neon-green);
+            animation: blink 1.5s infinite;
+        }
+        
+        .json-display {
+            background: var(--matrix-dark);
+            border: 2px solid var(--neon-purple);
+            padding: 2rem;
+            margin-top: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .json-display::before {
+            content: '// RAW_API_ENDPOINT_DATA.json';
+            position: absolute;
+            top: -1px;
+            right: 10px;
+            background: var(--matrix-black);
+            color: var(--neon-purple);
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            border: 1px solid var(--neon-purple);
+            border-top: none;
+        }
+        
+        .json-key {
+            color: var(--neon-blue);
+        }
+        
+        .json-string {
+            color: var(--neon-green);
+        }
+        
+        .json-number {
+            color: var(--neon-orange);
+        }
+        
+        .back-button {
+            display: inline-block;
+            background: transparent;
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+            padding: 1rem 2rem;
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .back-button:hover {
+            background: var(--neon-green);
+            color: var(--matrix-black);
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-2px); }
+            40% { transform: translateX(2px); }
+            60% { transform: translateX(-1px); }
+            80% { transform: translateX(1px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .loading-animation {
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+        
+        .loading-animation::after {
+            content: '';
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-overlay"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="title">API.STATUS</h1>
+            <p class="subtitle">System Diagnostics & Endpoint Monitoring</p>
+        </div>
+        
+        <div class="status-grid">
+            <div class="status-card">
+                <div class="card-header">
+                    <span class="card-icon">🔋</span>
+                    <span>System Status</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="status-info">
+                    <p>Status: <span class="status-value">OPERATIONAL</span></p>
+                    <p>Server: <span class="status-value">Webserv/1.0</span></p>
+                    <p>Protocol: <span class="status-value">HTTP/1.1</span></p>
+                    <p>Uptime: <span class="status-value">ACTIVE<span class="loading-animation"></span></span></p>
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <div class="card-header">
+                    <span class="card-icon">📡</span>
+                    <span>API Endpoint</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="status-info">
+                    <p>Endpoint: <span class="status-value">/api.json</span></p>
+                    <p>Method: <span class="status-value">GET</span></p>
+                    <p>Response: <span class="status-value">JSON</span></p>
+                    <p>Last Check: <span class="status-value">NOW</span></p>
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <div class="card-header">
+                    <span class="card-icon">⚡</span>
+                    <span>Features</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="status-info">
+                    <ul class="features-list">
+                        <li>HTTP/1.1 Support</li>
+                        <li>Static File Serving</li>
+                        <li>Configuration Parsing</li>
+                        <li>Multiple Virtual Hosts</li>
+                        <li>CGI Support (planned)</li>
+                        <li>File Upload (planned)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <span>Metrics</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div class="status-info">
+                    <p>Response Time: <span class="status-value">&lt; 1ms</span></p>
+                    <p>Success Rate: <span class="status-value">100%</span></p>
+                    <p>Error Rate: <span class="status-value">0%</span></p>
+                    <p>Data Format: <span class="status-value">JSON</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="json-display">
+            <pre id="api-data"><span class="json-key">"status"</span>: <span class="json-string">"success"</span>,
+<span class="json-key">"message"</span>: <span class="json-string">"Webserv JSON API is working"</span>,
+<span class="json-key">"server"</span>: <span class="json-string">"Webserv/1.0"</span>,
+<span class="json-key">"timestamp"</span>: <span class="json-string">"2025-05-27"</span>,
+<span class="json-key">"features"</span>: [
+    <span class="json-string">"HTTP/1.1 Support"</span>,
+    <span class="json-string">"Static File Serving"</span>,
+    <span class="json-string">"Configuration Parsing"</span>,
+    <span class="json-string">"Multiple Virtual Hosts"</span>,
+    <span class="json-string">"CGI Support (planned)"</span>,
+    <span class="json-string">"File Upload (planned)"</span>
+]</pre>
+        </div>
+        
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="/" class="back-button">← RETOUR AU TERMINAL</a>
+        </div>
+    </div>
+    
+    <script>
+        // Simulate real-time data fetching
+        async function updateApiData() {
+            try {
+                const response = await fetch('/api.json');
+                const data = await response.json();
+                
+                // Update timestamp if different
+                if (data.timestamp) {
+                    const jsonDisplay = document.getElementById('api-data');
+                    const currentContent = jsonDisplay.innerHTML;
+                    const updatedContent = currentContent.replace(
+                        /"timestamp":\s*"[^"]*"/,
+                        `"timestamp": "${data.timestamp}"`
+                    );
+                    jsonDisplay.innerHTML = updatedContent;
+                }
+            } catch (error) {
+                console.log('API check completed');
+            }
+        }
+        
+        // Update data every 30 seconds
+        setInterval(updateApiData, 30000);
+        
+        // Initial load
+        updateApiData();
+    </script>
+</body>
+</html>

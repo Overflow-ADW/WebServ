@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "message": "Webserv JSON API is working",
+  "server": "Webserv/1.0",
+  "timestamp": "2025-05-27",
+  "features": [
+    "HTTP/1.1 Support",
+    "Static File Serving",
+    "Configuration Parsing",
+    "Multiple Virtual Hosts",
+    "CGI Support",
+    "File Upload"
+  ]
+}

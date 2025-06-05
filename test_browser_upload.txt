@@ -1,0 +1,3 @@
+Ceci est un test d'upload via le navigateur.
+Fichier créé le 27 mai 2025.
+Contenu : données de test pour l'interface web d'upload.

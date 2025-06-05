@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGI.EXE - PYTHON EXECUTION ENVIRONMENT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --neon-green: #39ff14;
+            --neon-purple: #bf00ff;
+            --neon-orange: #ff6600;
+            --neon-blue: #00ccff;
+            --dark-bg: #0d0d0d;
+            --darker-bg: #050505;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Matrix-style background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent 24%, rgba(57, 255, 20, 0.03) 25%, rgba(57, 255, 20, 0.03) 26%, transparent 27%, transparent 74%, rgba(57, 255, 20, 0.03) 75%, rgba(57, 255, 20, 0.03) 76%, transparent 77%, transparent),
+                linear-gradient(0deg, transparent 24%, rgba(57, 255, 20, 0.03) 25%, rgba(57, 255, 20, 0.03) 26%, transparent 27%, transparent 74%, rgba(57, 255, 20, 0.03) 75%, rgba(57, 255, 20, 0.03) 76%, transparent 77%, transparent);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue), var(--neon-purple));
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--neon-orange);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(0, 204, 255, 0.1));
+            border: 2px solid var(--neon-green);
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(57, 255, 20, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: scanEffect 3s linear infinite;
+        }
+        
+        @keyframes scanEffect {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .info-card:hover {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 20px rgba(191, 0, 255, 0.3);
+            transform: translateY(-5px);
+        }
+        
+        .info-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--neon-green);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .info-content {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .scripts-section {
+            margin: 4rem 0;
+        }
+        
+        .section-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            color: var(--neon-purple);
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(191, 0, 255, 0.5);
+        }
+        
+        .script-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .script-card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid var(--neon-blue);
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .script-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 204, 255, 0.1) 2px,
+                    rgba(0, 204, 255, 0.1) 4px
+                );
+            pointer-events: none;
+        }
+        
+        .script-card:hover {
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 30px rgba(255, 102, 0, 0.2);
+            transform: scale(1.02);
+        }
+        
+        .script-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .script-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .execute-button {
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            color: var(--dark-bg);
+            border: none;
+            padding: 1rem 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: inline-block;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+        
+        .execute-button:hover {
+            background: linear-gradient(45deg, var(--neon-orange), var(--neon-purple));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(57, 255, 20, 0.3);
+        }
+        
+        .execute-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s;
+        }
+        
+        .execute-button:hover::before {
+            left: 100%;
+        }
+        
+        .terminal-section {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--neon-green);
+            padding: 2rem;
+            margin: 3rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal-header {
+            color: var(--neon-green);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .terminal-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+        
+        .command-line {
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .prompt {
+            color: var(--neon-blue);
+            margin-right: 0.5rem;
+        }
+        
+        .command {
+            color: var(--text-primary);
+            background: rgba(57, 255, 20, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+        }
+        
+        .nav-section {
+            text-align: center;
+            margin: 4rem 0;
+        }
+        
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .nav-link {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link:hover {
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .script-grid, .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .title {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">CGI.EXE</h1>
+            <p class="subtitle">Python Execution Environment</p>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-title">Directory Path</div>
+                <div class="info-content">/cgi-bin</div>
+            </div>
+            <div class="info-card">
+                <div class="info-title">Python Engine</div>
+                <div class="info-content">/usr/bin/python3</div>
+            </div>
+            <div class="info-card">
+                <div class="info-title">Supported Extensions</div>
+                <div class="info-content">.py, .php</div>
+            </div>
+            <div class="info-card">
+                <div class="info-title">Server Core</div>
+                <div class="info-content">C++98 HTTP/1.1 Webserver</div>
+            </div>
+        </div>
+
+        <div class="scripts-section">
+            <h2 class="section-title">Available Scripts</h2>
+            
+            <div class="script-grid">
+                <div class="script-card">
+                    <h3 class="script-title">test.py</h3>
+                    <p class="script-description">
+                        Python CGI Test Script - Comprehensive environment and parameter testing module for debugging CGI interactions and server configurations.
+                    </p>
+                    <a href="/cgi-bin/test.py" class="execute-button">Execute</a>
+                </div>
+                
+                <div class="script-card">
+                    <h3 class="script-title">quotes.py</h3>
+                    <p class="script-description">
+                        Générateur de Citations Inspirantes - Advanced quote generation system using dynamic content algorithms and randomized output patterns.
+                    </p>
+                    <a href="/cgi-bin/quotes.py" class="execute-button">Execute</a>
+                </div>
+                
+                <div class="script-card">
+                    <h3 class="script-title">sysinfo.py</h3>
+                    <p class="script-description">
+                        System Information Dashboard - Real-time system monitoring and diagnostic tool providing comprehensive server analytics and performance metrics.
+                    </p>
+                    <a href="/cgi-bin/sysinfo.py" class="execute-button">Execute</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="terminal-section">
+            <div class="terminal-header">// CGI Interface Documentation</div>
+            <div class="terminal-content">
+                <div class="command-line">
+                    <span class="prompt">root@webserv:~$</span>
+                    <span class="command">CGI (Common Gateway Interface) Protocol</span>
+                </div>
+                <div class="command-line">
+                    <span class="prompt">├──</span>
+                    <span class="command">Dynamic content generation through server-side execution</span>
+                </div>
+                <div class="command-line">
+                    <span class="prompt">├──</span>
+                    <span class="command">Environment variables and form data transmission</span>
+                </div>
+                <div class="command-line">
+                    <span class="prompt">├──</span>
+                    <span class="command">Full HTTP method support (GET, POST, PUT, DELETE)</span>
+                </div>
+                <div class="command-line">
+                    <span class="prompt">└──</span>
+                    <span class="command">Real-time Python script execution</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="terminal-section">
+            <div class="terminal-header">// Test Commands</div>
+            <div class="terminal-content">
+                <div class="command-line">
+                    <span class="prompt">$</span>
+                    <span class="command">curl http://localhost:8080/cgi-bin/test.py</span>
+                </div>
+                <div class="command-line">
+                    <span class="prompt">$</span>
+                    <span class="command">curl http://localhost:8080/cgi-bin/test.py?name=value</span>
+                </div>
+                <div class="command-line">
+                    <span class="prompt">$</span>
+                    <span class="command">curl -X POST -d "data=test" http://localhost:8080/cgi-bin/test.py</span>
+                </div>
+                <div class="command-line">
+                    <span class="prompt">$</span>
+                    <span class="command">curl http://localhost:8080/cgi-bin/quotes.py</span>
+                </div>
+                <div class="command-line">
+                    <span class="prompt">$</span>
+                    <span class="command">curl http://localhost:8080/cgi-bin/sysinfo.py</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/upload.html" class="nav-link">Upload Files</a>
+                <a href="/redirect" class="nav-link">Redirect Test</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

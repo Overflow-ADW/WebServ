@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API.STATUS - SYSTEM DIAGNOSTICS</title>
+    <link rel="stylesheet" href="styleApi.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap");
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 class="title">API.STATUS</h1>
+        <p class="subtitle">System Diagnostics & Endpoint Monitoring</p>
+      </div>
+
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="card-header">
+            <span class="card-icon">🔋</span>
+            <span>System Status</span>
+            <span class="status-indicator"></span>
+          </div>
+          <div class="status-info">
+            <p>Status: <span class="status-value">OPERATIONAL</span></p>
+            <p>Server: <span class="status-value">Webserv/1.0</span></p>
+            <p>Protocol: <span class="status-value">HTTP/1.1</span></p>
+            <p>
+              Uptime:
+              <span class="status-value">ACTIVE</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="status-card">
+          <div class="card-header">
+            <span class="card-icon">📡</span>
+            <span>API Endpoint</span>
+            <span class="status-indicator"></span>
+          </div>
+          <div class="status-info">
+            <p>Endpoint: <span class="status-value">/api.json</span></p>
+            <p>Method: <span class="status-value">GET</span></p>
+            <p>Response: <span class="status-value">JSON</span></p>
+            <p>Last Check: <span class="status-value">NOW</span></p>
+          </div>
+        </div>
+
+        <div class="status-card">
+          <div class="card-header">
+            <span class="card-icon">⚡</span>
+            <span>Features</span>
+            <span class="status-indicator"></span>
+          </div>
+          <div class="status-info">
+            <ul class="features-list">
+              <li>HTTP/1.1 Support</li>
+              <li>Static File Serving</li>
+              <li>Configuration Parsing</li>
+              <li>Multiple Virtual Hosts</li>
+              <li>CGI Support (planned)</li>
+              <li>File Upload (planned)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="status-card">
+          <div class="card-header">
+            <span class="card-icon">📊</span>
+            <span>Metrics</span>
+            <span class="status-indicator"></span>
+          </div>
+          <div class="status-info">
+            <p>Response Time: <span class="status-value">&lt; 1ms</span></p>
+            <p>Success Rate: <span class="status-value">100%</span></p>
+            <p>Error Rate: <span class="status-value">0%</span></p>
+            <p>Data Format: <span class="status-value">JSON</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="json-display">
+        <pre id="api-data"><span>"status"</span>: <span >"success"</span>,
+<span>"message"</span>: <span>"Webserv JSON API is working"</span>,
+<span>"server"</span>: <span>"Webserv/1.0"</span>,
+<span>"timestamp"</span>: <span>"2025-05-27"</span>,
+<span>"features"</span>: [
+    <span>"HTTP/1.1 Support"</span>,
+    <span>"Static File Serving"</span>,
+    <span>"Configuration Parsing"</span>,
+    <span>"Multiple Virtual Hosts"</span>,
+    <span>"CGI Support (planned)"</span>,
+    <span>"File Upload (planned)"</span>
+]</pre>
+      </div>
+
+      <div class="footer">
+        <a href="/" class="back-button">← RETOUR AU TERMINAL</a>
+      </div>
+    </div>
+
+    <script>
+      // Simulate real-time data fetching
+      async function updateApiData() {
+        try {
+          const response = await fetch("/api.json");
+          const data = await response.json();
+
+          // Update timestamp if different
+          if (data.timestamp) {
+            const jsonDisplay = document.getElementById("api-data");
+            const currentContent = jsonDisplay.innerHTML;
+            const updatedContent = currentContent.replace(
+              /"timestamp":\s*"[^"]*"/,
+              `"timestamp": "${data.timestamp}"`
+            );
+            jsonDisplay.innerHTML = updatedContent;
+          }
+        } catch (error) {
+          console.log("API check completed");
+        }
+      }
+
+      // Update data every 30 seconds
+      setInterval(updateApiData, 30000);
+
+      // Initial load
+      updateApiData();
+    </script>
+  </body>
+</html>

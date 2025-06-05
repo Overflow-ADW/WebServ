@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEBSERV.EXE - BRUTALIST HTTP SERVER</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --brutal-red: #ff3333;
+            --brutal-yellow: #ffff00;
+            --brutal-blue: #3333ff;
+            --brutal-green: #33ff33;
+            --brutal-black: #000000;
+            --brutal-white: #ffffff;
+            --brutal-pink: #ff33ff;
+            --brutal-cyan: #33ffff;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--brutal-black);
+            color: var(--brutal-white);
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: crosshair;
+        }
+        
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.1) 2px,
+                    rgba(255, 255, 255, 0.1) 4px
+                );
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+        
+        .title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--brutal-white);
+            text-shadow: 
+                4px 4px 0px var(--brutal-red),
+                8px 8px 0px var(--brutal-yellow),
+                12px 12px 0px var(--brutal-blue);
+            letter-spacing: 5px;
+            margin-bottom: 2rem;
+            transform: rotate(-2deg);
+            transition: all 0.3s ease;
+        }
+        
+        .title:hover {
+            transform: rotate(1deg) scale(1.05);
+            animation: glitch 0.3s ease-in-out;
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: rotate(1deg) scale(1.05); }
+            25% { transform: rotate(-1deg) scale(1.05) skew(2deg); }
+            50% { transform: rotate(2deg) scale(1.05) skew(-2deg); }
+            75% { transform: rotate(-1deg) scale(1.05) skew(1deg); }
+        }
+        
+        .subtitle {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1rem, 3vw, 2rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, var(--brutal-cyan), var(--brutal-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            transform: rotate(1deg);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+        
+        .stat-block {
+            background: var(--brutal-white);
+            color: var(--brutal-black);
+            padding: 2rem;
+            border: 8px solid var(--brutal-black);
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .stat-block:nth-child(1) {
+            background: var(--brutal-red);
+            color: var(--brutal-white);
+            transform: rotate(-3deg);
+        }
+        
+        .stat-block:nth-child(2) {
+            background: var(--brutal-yellow);
+            color: var(--brutal-black);
+            transform: rotate(2deg);
+        }
+        
+        .stat-block:nth-child(3) {
+            background: var(--brutal-blue);
+            color: var(--brutal-white);
+            transform: rotate(-1deg);
+        }
+        
+        .stat-block:nth-child(4) {
+            background: var(--brutal-green);
+            color: var(--brutal-black);
+            transform: rotate(3deg);
+        }
+        
+        .stat-block:hover {
+            transform: scale(1.1) rotate(0deg);
+            box-shadow: 
+                15px 15px 0px var(--brutal-black),
+                30px 30px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 1rem;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin: 5rem 0;
+        }
+        
+        .feature-card {
+            background: var(--brutal-white);
+            color: var(--brutal-black);
+            padding: 2.5rem;
+            border: 6px solid var(--brutal-black);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:nth-child(odd) {
+            background: var(--brutal-pink);
+            color: var(--brutal-white);
+            transform: skew(-2deg);
+        }
+        
+        .feature-card:nth-child(even) {
+            background: var(--brutal-cyan);
+            color: var(--brutal-black);
+            transform: skew(2deg);
+        }
+        
+        .feature-card:hover {
+            transform: skew(0deg) translateY(-10px);
+            box-shadow: 10px 10px 0px var(--brutal-black);
+        }
+        
+        .feature-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+        
+        .feature-description {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        
+        .nav-section {
+            margin: 5rem 0;
+            text-align: center;
+        }
+        
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .nav-button {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 2rem;
+            background: var(--brutal-black);
+            color: var(--brutal-white);
+            border: 4px solid var(--brutal-white);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 2px;
+        }
+        
+        .nav-button:nth-child(1) {
+            border-color: var(--brutal-red);
+            color: var(--brutal-red);
+        }
+        
+        .nav-button:nth-child(2) {
+            border-color: var(--brutal-yellow);
+            color: var(--brutal-yellow);
+        }
+        
+        .nav-button:nth-child(3) {
+            border-color: var(--brutal-blue);
+            color: var(--brutal-blue);
+        }
+        
+        .nav-button:nth-child(4) {
+            border-color: var(--brutal-green);
+            color: var(--brutal-green);
+        }
+        
+        .nav-button:hover {
+            background: currentColor;
+            color: var(--brutal-white) !important;
+            transform: scale(1.05);
+            box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s;
+        }
+        
+        .nav-button:hover::before {
+            left: 100%;
+        }
+        
+        .footer {
+            text-align: center;
+            margin: 5rem 0 2rem;
+            padding: 2rem;
+            background: var(--brutal-white);
+            color: var(--brutal-black);
+            border: 4px solid var(--brutal-black);
+            transform: rotate(-1deg);
+        }
+        
+        .footer-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid,
+            .features-grid,
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .title {
+                font-size: 4rem;
+                letter-spacing: 2px;
+            }
+            
+            .stat-block,
+            .feature-card {
+                transform: none;
+            }
+            
+            .footer {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    
+    <div class="container">
+        <header class="header">
+            <h1 class="title">WEBSERV.EXE</h1>
+            <p class="subtitle">BRUTALIST HTTP/1.1 SERVER</p>
+        </header>
+        
+        <section class="stats-grid">
+            <div class="stat-block">
+                <div class="stat-number">42</div>
+                <div class="stat-label">RFC Compliance</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Concurrent Connections</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-number">C++</div>
+                <div class="stat-label">Core Language</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-number">1.1</div>
+                <div class="stat-label">HTTP Protocol</div>
+            </div>
+        </section>
+        
+        <section class="features-grid">
+            <div class="feature-card">
+                <h3 class="feature-title">HIGH PERFORMANCE</h3>
+                <p class="feature-description">
+                    Built with modern C++98 standards for maximum efficiency and minimal resource consumption. 
+                    Non-blocking I/O and optimized request handling ensure blazing fast response times.
+                </p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">CGI SUPPORT</h3>
+                <p class="feature-description">
+                    Full Common Gateway Interface implementation supporting Python, PHP and custom scripts. 
+                    Dynamic content generation with secure environment variable handling.
+                </p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">FILE UPLOADS</h3>
+                <p class="feature-description">
+                    Robust multipart/form-data processing with configurable size limits and secure file handling. 
+                    Support for large file transfers and concurrent upload operations.
+                </p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">CONFIGURATION</h3>
+                <p class="feature-description">
+                    Flexible configuration system inspired by nginx. Multiple virtual hosts, custom error pages, 
+                    and fine-grained location-based routing controls.
+                </p>
+            </div>
+        </section>
+        
+        <section class="nav-section">
+            <div class="nav-grid">
+                <a href="/upload.html" class="nav-button">FILE UPLOAD</a>
+                <a href="/cgi-bin/index.py" class="nav-button">CGI SCRIPTS</a>
+                <a href="/redirect" class="nav-button">REDIRECT TEST</a>
+            </div>
+        </section>
+        
+        <footer class="footer">
+            <p class="footer-text">WEBSERV © 2024 - ECOLE 42 PROJECT</p>
+        </footer>
+    </div>
+</body>
+</html>

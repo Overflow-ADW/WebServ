@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FILE_UPLOAD.EXE - WEBSERV</title>
+    <link rel="stylesheet" href="styleUpload.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700&display=swap");
+    </style>
+  </head>
+  <body>
+    <div class="main-container">
+      <header class="header">
+        <h1 class="title">FILE_UPLOAD.EXE</h1>
+        <p class="subtitle">WEBSERV://C++98_HTTP_SERVER</p>
+      </header>
+
+      <div class="grid-container">
+        <div class="info-panel">
+          <h3>[SYSTEM_INFO]</h3>
+          <p>
+            <strong>📁 TARGET_DIR:</strong> ./uploads<br />
+            <strong>📋 PROTOCOLS:</strong> HTTP/1.1<br />
+            <strong>🔧 ENGINE:</strong> C++98_WEBSERV<br />
+            <strong>⚡ STATUS:</strong> ONLINE
+          </p>
+        </div>
+
+        <div class="info-panel">
+          <h3>[SPECS]</h3>
+          <p>
+            <strong>🌐 METHODS:</strong> GET, POST<br />
+            <strong>📊 MAX_SIZE:</strong> UNLIMITED<br />
+            <strong>🔒 SECURITY:</strong> ACTIVE<br />
+            <strong>⏱️ TIMEOUT:</strong> 30s
+          </p>
+        </div>
+
+        <div class="upload-zone">
+          <h2 class="upload-title">[UPLOAD_INTERFACE]</h2>
+          <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="file-input-wrapper">
+              <input
+                type="file"
+                id="file"
+                name="file"
+                class="file-input"
+                required
+              />
+              <label for="file" class="file-input-button">
+                📁 SELECT_FILE_TO_UPLOAD
+              </label>
+            </div>
+
+            <button type="submit" class="upload-button">
+              ⚡ EXECUTE_UPLOAD
+            </button>
+          </form>
+        </div>
+
+        <div class="terminal-output">
+          <div class="terminal-line">
+            <span class="prompt">webserv@system:~$</span> cat
+            upload_instructions.txt
+          </div>
+          <div class="terminal-line">• SELECT file using interface above</div>
+          <div class="terminal-line">
+            • CLICK execute button to initiate transfer
+          </div>
+          <div class="terminal-line">
+            • FILES will be stored in ./uploads directory
+          </div>
+          <div class="terminal-line">
+            • SERVER will respond with confirmation
+          </div>
+          <div class="terminal-line">
+            <span class="prompt">webserv@system:~$</span>
+            <span style="animation: blink 1s infinite">█</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <a href="/" class="nav-link">🏠 HOME</a>
+        <a href="/cgi-bin" class="nav-link">🐍 CGI_SCRIPTS</a>
+        <a href="/redirect" class="nav-link">🔗 REDIRECT_TEST</a>
+      </nav>
+    </div>
+  </body>
+</html>
