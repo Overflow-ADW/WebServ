@@ -1,0 +1,217 @@
+[34m🚀 Démarrage de Webserv...[0m
+[33m📖 Lecture du fichier de configuration: configs/default.conf[0m
+[33m📋 Parsing configuration file: configs/default.conf[0m
+[33m  📋 Parsing server block...[0m
+[32m    ✓ Port: 8080[0m
+[32m    ✓ Server name: localhost[0m
+[32m    ✓ Root: ./www[0m
+[32m    ✓ Index: index.html[0m
+[32m    ✓ Max body size: 1000000 bytes[0m
+[32m    ✓ Error page 404: /404.html[0m
+[32m    ✓ Error page 500: 502[0m
+[36m    📍 Parsing location block: /[0m
+[36m      ✓ Allowed methods: GET[0m
+[36m      ✓ Autoindex: OFF[0m
+[36m    ✅ Location / added to localhost[0m
+[36m    📍 Parsing location block: /upload[0m
+[36m      ✓ Allowed methods: GET, POST[0m
+[36m      ✓ Upload path: ./uploads[0m
+[36m    ✅ Location /upload added to localhost[0m
+[36m    📍 Parsing location block: /cgi-bin[0m
+[36m      ✓ Allowed methods: GET, POST[0m
+[36m      ✓ CGI extensions: .py, .php[0m
+[36m      ✓ CGI path: /usr/bin/python3[0m
+[36m    ✅ Location /cgi-bin added to localhost[0m
+[36m    📍 Parsing location block: /redirect[0m
+[36m      ✓ Allowed methods: GET, POST[0m
+[36m      ✓ Redirect: 301 -> https://www.google.com[0m
+[36m    ✅ Location /redirect added to localhost[0m
+[32m  ✅ Server configuration added[0m
+[33m  📋 Parsing server block...[0m
+[32m    ✓ Port: 8081[0m
+[32m    ✓ Server name: example.com[0m
+[32m    ✓ Root: ./www_example[0m
+[32m    ✓ Index: index.html[0m
+[36m    📍 Parsing location block: /[0m
+[36m      ✓ Allowed methods: GET[0m
+[36m      ✓ Autoindex: ON[0m
+[36m    ✅ Location / added to example.com[0m
+[32m  ✅ Server configuration added[0m
+[32m✅ Configuration parsed successfully. Found 2 server(s)[0m
+[36m
+=== 📋 Configuration Debug ===[0m
+[32m
+🖥️  Server 1:[0m
+  📍 Host: 127.0.0.1
+  🔌 Port: 8080
+  🏷️  Server name: localhost
+  📁 Root: ./www
+  📄 Index: index.html
+  📏 Max body size: 1000000 bytes
+  🚨 Error pages:
+    404 -> /404.html
+    500 -> 502
+[34m  📍 Locations:[0m
+[34m    🗂️  /:[0m
+      Methods: GET
+      Autoindex: OFF
+[34m    🗂️  /upload:[0m
+      Methods: GET, POST
+      Upload: ./uploads
+      Autoindex: OFF
+[34m    🗂️  /cgi-bin:[0m
+      Methods: GET, POST
+      CGI extensions: .py, .php
+      CGI path: /usr/bin/python3
+      Autoindex: OFF
+[34m    🗂️  /redirect:[0m
+      Methods: GET, POST
+      Autoindex: OFF
+      Redirect: 301 -> https://www.google.com
+[32m
+🖥️  Server 2:[0m
+  📍 Host: 127.0.0.1
+  🔌 Port: 8081
+  🏷️  Server name: example.com
+  📁 Root: ./www_example
+  📄 Index: index.html
+  📏 Max body size: 1000000 bytes
+[34m  📍 Locations:[0m
+[34m    🗂️  /:[0m
+      Methods: GET
+      Autoindex: ON
+[36m
+=== End Configuration ===[0m
+[32m⚙️  Initialisation du serveur...[0m
+[33m🔌 Setting up listening sockets...[0m
+[32m✅ Socket listening on 127.0.0.1:8080[0m
+[32m✅ Socket listening on 127.0.0.1:8081[0m
+[32m🌐 Serveur démarré avec succès![0m
+[32m🚀 Server is running... Press Ctrl+C to stop[0m
+[36m📥 New connection accepted on fd 5[0m
+[34m📨 Handling request from client 5[0m
+[36m📋 Raw request (78 bytes):[0m
+GET / HTTP/1.1
+Host: localhost:8081
+User-Agent: curl/7.81.0
+Accept: */*
+
+
+[32m✅ HTTP request parsed successfully[0m
+[36m=== 📨 HTTP Request Debug ===[0m
+[32mMethod: GET[0m
+[32mPath: /[0m
+[32mVersion: HTTP/1.1[0m
+[33mHeaders:[0m
+  accept: */*
+  host: localhost:8081
+  user-agent: curl/7.81.0
+[36m=== End Request ===[0m
+[36m🔍 Using server config: example.com (port 8081)[0m
+[36m📍 Using location: /[0m
+[34m📁 Serving file: ./www_example/index.html[0m
+[33m⚠️  404 Not Found: ./www_example/index.html[0m
+[33m🔌 Connection closed for fd 5[0m
+[36m📥 New connection accepted on fd 5[0m
+[34m📨 Handling request from client 5[0m
+[36m📋 Raw request (202 bytes):[0m
+POST /cgi-bin/test_echo.py HTTP/1.1
+Host: localhost:8081
+User-Agent: curl/7.81.0
+Accept: */*
+Content-Length: 34
+Content-Type: application/x-www-form-urlencoded
+
+
+[Body: 34 bytes]
+[32m✅ HTTP request parsed successfully[0m
+[36m=== 📨 HTTP Request Debug ===[0m
+[32mMethod: POST[0m
+[32mPath: /cgi-bin/test_echo.py[0m
+[32mVersion: HTTP/1.1[0m
+[33mHeaders:[0m
+  accept: */*
+  content-length: 34
+  content-type: application/x-www-form-urlencoded
+  host: localhost:8081
+  user-agent: curl/7.81.0
+[34mBody (34 bytes):[0m
+test_data_for_write_error_handling
+[36m=== End Request ===[0m
+[36m🔍 Using server config: example.com (port 8081)[0m
+[36m📍 Using location: /[0m
+[31m❌ Method POST not allowed for /cgi-bin/test_echo.py[0m
+[33m⚠️  Error response sent to client 5 (405 Error)[0m
+[33m🔌 Connection closed for fd 5[0m
+[36m📥 New connection accepted on fd 5[0m
+[34m📨 Handling request from client 5[0m
+[36m📋 Raw request (96 bytes):[0m
+GET /cgi-bin/sysinfo.py HTTP/1.1
+Host: localhost:8081
+User-Agent: curl/7.81.0
+Accept: */*
+
+
+[32m✅ HTTP request parsed successfully[0m
+[36m=== 📨 HTTP Request Debug ===[0m
+[32mMethod: GET[0m
+[32mPath: /cgi-bin/sysinfo.py[0m
+[32mVersion: HTTP/1.1[0m
+[33mHeaders:[0m
+  accept: */*
+  host: localhost:8081
+  user-agent: curl/7.81.0
+[36m=== End Request ===[0m
+[36m🔍 Using server config: example.com (port 8081)[0m
+[36m📍 Using location: /[0m
+[34m📁 Serving file: ./www_example/cgi-bin/sysinfo.py[0m
+[33m⚠️  404 Not Found: ./www_example/cgi-bin/sysinfo.py[0m
+[33m🔌 Connection closed for fd 5[0m
+[36m📥 New connection accepted on fd 5[0m
+[34m📨 Handling request from client 5[0m
+[36m📋 Raw request (86 bytes):[0m
+GET /test.txt HTTP/1.1
+Host: localhost:8081
+User-Agent: curl/7.81.0
+Accept: */*
+
+
+[32m✅ HTTP request parsed successfully[0m
+[36m=== 📨 HTTP Request Debug ===[0m
+[32mMethod: GET[0m
+[32mPath: /test.txt[0m
+[32mVersion: HTTP/1.1[0m
+[33mHeaders:[0m
+  accept: */*
+  host: localhost:8081
+  user-agent: curl/7.81.0
+[36m=== End Request ===[0m
+[36m🔍 Using server config: example.com (port 8081)[0m
+[36m📍 Using location: /[0m
+[34m📁 Serving file: ./www_example/test.txt[0m
+[33m⚠️  404 Not Found: ./www_example/test.txt[0m
+[33m🔌 Connection closed for fd 5[0m
+[36m📥 New connection accepted on fd 5[0m
+[34m📨 Handling request from client 5[0m
+[36m📋 Raw request (88 bytes):[0m
+GET /index.html HTTP/1.1
+Host: localhost:8081
+User-Agent: curl/7.81.0
+Accept: */*
+
+
+[32m✅ HTTP request parsed successfully[0m
+[36m=== 📨 HTTP Request Debug ===[0m
+[32mMethod: GET[0m
+[32mPath: /index.html[0m
+[32mVersion: HTTP/1.1[0m
+[33mHeaders:[0m
+  accept: */*
+  host: localhost:8081
+  user-agent: curl/7.81.0
+[36m=== End Request ===[0m
+[36m🔍 Using server config: example.com (port 8081)[0m
+[36m📍 Using location: /[0m
+[34m📁 Serving file: ./www_example/index.html[0m
+[33m⚠️  404 Not Found: ./www_example/index.html[0m
+[33m🔌 Connection closed for fd 5[0m

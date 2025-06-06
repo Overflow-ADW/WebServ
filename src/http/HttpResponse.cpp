@@ -260,7 +260,19 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
         // Send request body to CGI script via stdin (for POST requests)
         if (!request_body.empty()) {
             ssize_t bytes_written = write(pipe_in[1], request_body.c_str(), request_body.length());
-            (void)bytes_written; // Avoid unused variable warning
+            if (bytes_written < 0) {
+                close(pipe_in[1]);
+                close(pipe_out[0]);
+                setStatus(500, "Internal Server Error");
+                setBody("<html><body><h1>500 Internal Server Error</h1><p>Failed to send data to CGI script</p></body></html>");
+                return false;
+            }
+            // Note: Partial writes are acceptable for CGI context, 
+            // but we log if data wasn't completely written
+            if ((size_t)bytes_written != request_body.length()) {
+                std::cerr << "Warning: CGI write was partial (" << bytes_written 
+                          << "/" << request_body.length() << " bytes)" << std::endl;
+            }
         }
         close(pipe_in[1]); // Close input pipe after sending data
         
@@ -272,6 +284,12 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
         while ((bytes_read = read(pipe_out[0], buffer, sizeof(buffer) - 1)) > 0) {
             buffer[bytes_read] = '\0';
             cgi_output += buffer;
+        }
+        
+        // Check for read errors (bytes_read < 0)
+        if (bytes_read < 0) {
+            std::cerr << "Warning: CGI read error encountered (may be normal if CGI closed pipe)" << std::endl;
+            // Continue processing - partial output is acceptable
         }
         
         close(pipe_out[0]);

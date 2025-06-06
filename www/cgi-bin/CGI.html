@@ -3,150 +3,89 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CGI.EXE - PYTHON EXECUTION ENVIRONMENT</title>
-    <link rel="stylesheet" href="styleCgi.css" />
+    <title>CGI.EXE - BRUTALIST SCRIPT EXECUTION</title>
+    <link rel="stylesheet" href="../styleIndex.css" />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap");
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="header">
+      <header class="header">
         <h1 class="title">CGI.EXE</h1>
-        <p class="subtitle">Python Execution Environment</p>
-      </div>
+        <p class="subtitle">BRUTALIST SCRIPT EXECUTION</p>
+      </header>
 
-      <div class="info-grid">
-        <div class="info-card">
-          <div class="info-title">Directory Path</div>
-          <div class="info-content">/cgi-bin</div>
+      <section class="stats-grid">
+        <div class="stat-block">
+          <div class="stat-number">PY3</div>
+          <div class="stat-label">Python Version</div>
         </div>
-        <div class="info-card">
-          <div class="info-title">Python Engine</div>
-          <div class="info-content">/usr/bin/python3</div>
+        <div class="stat-block">
+          <div class="stat-number">/BIN</div>
+          <div class="stat-label">Script Directory</div>
         </div>
-        <div class="info-card">
-          <div class="info-title">Supported Extensions</div>
-          <div class="info-content">.py, .php</div>
+        <div class="stat-block">
+          <div class="stat-number">CGI</div>
+          <div class="stat-label">Protocol Standard</div>
         </div>
-        <div class="info-card">
-          <div class="info-title">Server Core</div>
-          <div class="info-content">C++98 HTTP/1.1 Webserver</div>
+        <div class="stat-block">
+          <div class="stat-number">C++</div>
+          <div class="stat-label">Server Core</div>
         </div>
-      </div>
+      </section>
 
-      <div class="scripts-section">
-        <h2 class="section-title">Available Scripts</h2>
-
-        <div class="script-grid">
-          <div class="script-card">
-            <h3 class="script-title">test.py</h3>
-            <p class="script-description">
-              Python CGI Test Script - Comprehensive environment and parameter
-              testing module for debugging CGI interactions and server
-              configurations.
-            </p>
-            <a href="/cgi-bin/test.py" class="execute-button">Execute</a>
-          </div>
-
-          <div class="script-card">
-            <h3 class="script-title">quotes.py</h3>
-            <p class="script-description">
-              Générateur de Citations Inspirantes - Advanced quote generation
-              system using dynamic content algorithms and randomized output
-              patterns.
-            </p>
-            <a href="/cgi-bin/quotes.py" class="execute-button">Execute</a>
-          </div>
-
-          <div class="script-card">
-            <h3 class="script-title">sysinfo.py</h3>
-            <p class="script-description">
-              System Information Dashboard - Real-time system monitoring and
-              diagnostic tool providing comprehensive server analytics and
-              performance metrics.
-            </p>
-            <a href="/cgi-bin/sysinfo.py" class="execute-button">Execute</a>
-          </div>
+      <section class="features-grid">
+        <div class="feature-card">
+          <h3 class="feature-title">TEST.PY</h3>
+          <p class="feature-description">
+            Comprehensive CGI test script that displays environment variables,
+            request headers, and POST data. Perfect for debugging CGI
+            interactions and server configurations.
+          </p>
+          <a href="/cgi-bin/test.py" class="nav-button">EXECUTE</a>
         </div>
-      </div>
-
-      <div class="terminal-section">
-        <div class="terminal-header">// CGI Interface Documentation</div>
-        <div class="terminal-content">
-          <div class="command-line">
-            <span class="prompt">root@webserv:~$</span>
-            <span class="command">CGI (Common Gateway Interface) Protocol</span>
-          </div>
-          <div class="command-line">
-            <span class="prompt">├──</span>
-            <span class="command"
-              >Dynamic content generation through server-side execution</span
-            >
-          </div>
-          <div class="command-line">
-            <span class="prompt">├──</span>
-            <span class="command"
-              >Environment variables and form data transmission</span
-            >
-          </div>
-          <div class="command-line">
-            <span class="prompt">├──</span>
-            <span class="command"
-              >Full HTTP method support (GET, POST, PUT, DELETE)</span
-            >
-          </div>
-          <div class="command-line">
-            <span class="prompt">└──</span>
-            <span class="command">Real-time Python script execution</span>
-          </div>
+        <div class="feature-card">
+          <h3 class="feature-title">SYSINFO.PY</h3>
+          <p class="feature-description">
+            System information script that displays server environment,
+            Python version, system resources and runtime statistics.
+            Real-time server monitoring through CGI.
+          </p>
+          <a href="/cgi-bin/sysinfo.py" class="nav-button">EXECUTE</a>
         </div>
-      </div>
-
-      <div class="terminal-section">
-        <div class="terminal-header">// Test Commands</div>
-        <div class="terminal-content">
-          <div class="command-line">
-            <span class="prompt">$</span>
-            <span class="command"
-              >curl http://localhost:8080/cgi-bin/test.py</span
-            >
-          </div>
-          <div class="command-line">
-            <span class="prompt">$</span>
-            <span class="command"
-              >curl http://localhost:8080/cgi-bin/test.py?name=value</span
-            >
-          </div>
-          <div class="command-line">
-            <span class="prompt">$</span>
-            <span class="command"
-              >curl -X POST -d "data=test"
-              http://localhost:8080/cgi-bin/test.py</span
-            >
-          </div>
-          <div class="command-line">
-            <span class="prompt">$</span>
-            <span class="command"
-              >curl http://localhost:8080/cgi-bin/quotes.py</span
-            >
-          </div>
-          <div class="command-line">
-            <span class="prompt">$</span>
-            <span class="command"
-              >curl http://localhost:8080/cgi-bin/sysinfo.py</span
-            >
-          </div>
+        <div class="feature-card">
+          <h3 class="feature-title">QUOTES.PY</h3>
+          <p class="feature-description">
+            Random quote generator demonstrating dynamic content creation.
+            JSON API endpoint with random programming quotes and developer
+            wisdom. RESTful CGI implementation.
+          </p>
+          <a href="/cgi-bin/quotes.py" class="nav-button">EXECUTE</a>
         </div>
-      </div>
-
-      <div class="nav-section">
-        <div class="nav-links">
-          <a href="/" class="nav-link">Home</a>
-          <a href="/upload.html" class="nav-link">Upload Files</a>
-          <a href="/redirect" class="nav-link">Redirect Test</a>
+        <div class="feature-card">
+          <h3 class="feature-title">CUSTOM SCRIPTS</h3>
+          <p class="feature-description">
+            Upload and execute your own Python scripts. Support for
+            custom CGI applications with full environment variable
+            access and HTTP protocol compliance.
+          </p>
+          <a href="/upload.html" class="nav-button">UPLOAD</a>
         </div>
-      </div>
+      </section>
+
+      <section class="nav-section">
+        <div class="nav-grid">
+          <a href="/cgi-bin/test.py" class="nav-button">RUN TESTS</a>
+          <a href="/cgi-bin/sysinfo.py" class="nav-button">SYSTEM INFO</a>
+          <a href="/upload.html" class="nav-button">UPLOAD SCRIPT</a>
+          <a href="/" class="nav-button">BACK TO HOME</a>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>CGI.EXE © 2024 - WEBSERV PROJECT</p>
+      </footer>
     </div>
   </body>
 </html>

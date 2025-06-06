@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# CGI Test executable pour les tests Ubuntu
+# Doit respecter le protocole CGI/1.1
+
+echo "Content-Type: text/html"
+echo ""
+echo "<html><head><title>CGI Test</title></head><body>"
+echo "<h1>CGI Test Result</h1>"
+echo "<p><strong>REQUEST_METHOD:</strong> $REQUEST_METHOD</p>"
+echo "<p><strong>REQUEST_URI:</strong> $REQUEST_URI</p>"
+echo "<p><strong>QUERY_STRING:</strong> $QUERY_STRING</p>"
+echo "<p><strong>CONTENT_TYPE:</strong> $CONTENT_TYPE</p>"
+echo "<p><strong>CONTENT_LENGTH:</strong> $CONTENT_LENGTH</p>"
+echo "<p><strong>SERVER_SOFTWARE:</strong> $SERVER_SOFTWARE</p>"
+echo "<p><strong>GATEWAY_INTERFACE:</strong> $GATEWAY_INTERFACE</p>"
+echo "<p><strong>SERVER_PROTOCOL:</strong> $SERVER_PROTOCOL</p>"
+
+if [ "$REQUEST_METHOD" = "POST" ]; then
+    echo "<h2>POST Data:</h2>"
+    echo "<pre>"
+    # Lire les données POST du stdin
+    if [ -n "$CONTENT_LENGTH" ] && [ "$CONTENT_LENGTH" -gt 0 ]; then
+        head -c "$CONTENT_LENGTH"
+    else
+        cat
+    fi
+    echo "</pre>"
+fi
+
+echo "<p><em>CGI execution successful</em></p>"
+echo "</body></html>"

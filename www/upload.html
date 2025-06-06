@@ -1,91 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FILE_UPLOAD.EXE - WEBSERV</title>
-    <link rel="stylesheet" href="styleUpload.css" />
+    <title>UPLOAD.EXE - BRUTALIST FILE TRANSFER</title>
+    <link rel="stylesheet" href="styleIndex.css" />
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap");
     </style>
   </head>
   <body>
-    <div class="main-container">
+    <div class="container">
       <header class="header">
-        <h1 class="title">FILE_UPLOAD.EXE</h1>
-        <p class="subtitle">WEBSERV://C++98_HTTP_SERVER</p>
+        <h1 class="title">UPLOAD.EXE</h1>
+        <p class="subtitle">BRUTALIST FILE TRANSFER</p>
       </header>
 
-      <div class="grid-container">
-        <div class="info-panel">
-          <h3>[SYSTEM_INFO]</h3>
-          <p>
-            <strong>📁 TARGET_DIR:</strong> ./uploads<br />
-            <strong>📋 PROTOCOLS:</strong> HTTP/1.1<br />
-            <strong>🔧 ENGINE:</strong> C++98_WEBSERV<br />
-            <strong>⚡ STATUS:</strong> ONLINE
-          </p>
+      <section class="stats-grid">
+        <div class="stat-block">
+          <div class="stat-number">POST</div>
+          <div class="stat-label">Method Support</div>
         </div>
-
-        <div class="info-panel">
-          <h3>[SPECS]</h3>
-          <p>
-            <strong>🌐 METHODS:</strong> GET, POST<br />
-            <strong>📊 MAX_SIZE:</strong> UNLIMITED<br />
-            <strong>🔒 SECURITY:</strong> ACTIVE<br />
-            <strong>⏱️ TIMEOUT:</strong> 30s
-          </p>
+        <div class="stat-block">
+          <div class="stat-number">∞</div>
+          <div class="stat-label">File Size Limit</div>
         </div>
+        <div class="stat-block">
+          <div class="stat-number">BIN</div>
+          <div class="stat-label">All Formats</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-number">C++</div>
+          <div class="stat-label">Server Engine</div>
+        </div>
+      </section>
 
-        <div class="upload-zone">
-          <h2 class="upload-title">[UPLOAD_INTERFACE]</h2>
-          <form action="/upload" method="post" enctype="multipart/form-data">
-            <div class="file-input-wrapper">
-              <input
-                type="file"
-                id="file"
-                name="file"
-                class="file-input"
-                required
-              />
-              <label for="file" class="file-input-button">
-                📁 SELECT_FILE_TO_UPLOAD
-              </label>
-            </div>
-
-            <button type="submit" class="upload-button">
-              ⚡ EXECUTE_UPLOAD
-            </button>
+      <section class="features-grid">
+        <div class="feature-card">
+          <h3 class="feature-title">FILE UPLOAD</h3>
+          <p class="feature-description">
+            Secure multipart/form-data file upload with robust error handling.
+            Support for all file types and concurrent upload operations.
+          </p>
+          <form action="/upload" method="post" enctype="multipart/form-data" style="margin-top: 1rem;">
+            <input type="file" name="file" required style="margin-bottom: 1rem; width: 100%; padding: 0.5rem; background: #333; color: white; border: 2px solid #444;">
+            <button type="submit" class="nav-button">UPLOAD FILE</button>
           </form>
         </div>
-
-        <div class="terminal-output">
-          <div class="terminal-line">
-            <span class="prompt">webserv@system:~$</span> cat
-            upload_instructions.txt
-          </div>
-          <div class="terminal-line">• SELECT file using interface above</div>
-          <div class="terminal-line">
-            • CLICK execute button to initiate transfer
-          </div>
-          <div class="terminal-line">
-            • FILES will be stored in ./uploads directory
-          </div>
-          <div class="terminal-line">
-            • SERVER will respond with confirmation
-          </div>
-          <div class="terminal-line">
-            <span class="prompt">webserv@system:~$</span>
-            <span style="animation: blink 1s infinite">█</span>
-          </div>
+        <div class="feature-card">
+          <h3 class="feature-title">UPLOAD DIRECTORY</h3>
+          <p class="feature-description">
+            Target directory: ./uploads/<br>
+            Files are stored with original names and permissions.
+            Server responds with upload confirmation.
+          </p>
         </div>
-      </div>
+        <div class="feature-card">
+          <h3 class="feature-title">SUPPORTED FORMATS</h3>
+          <p class="feature-description">
+            All file formats supported including binary files, images, 
+            documents, and archives. No size restrictions implemented.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h3 class="feature-title">SECURITY</h3>
+          <p class="feature-description">
+            Secure file handling with proper validation. Protection against
+            path traversal and malicious uploads. HTTP/1.1 compliant.
+          </p>
+        </div>
+      </section>
 
-      <nav class="nav-links">
-        <a href="/" class="nav-link">🏠 HOME</a>
-        <a href="/cgi-bin" class="nav-link">🐍 CGI_SCRIPTS</a>
-        <a href="/redirect" class="nav-link">🔗 REDIRECT_TEST</a>
-      </nav>
+      <section class="nav-section">
+        <div class="nav-grid">
+          <a href="/" class="nav-button">HOME</a>
+          <a href="/cgi-bin/index.py" class="nav-button">CGI SCRIPTS</a>
+          <a href="/redirect" class="nav-button">REDIRECT TEST</a>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>UPLOAD.EXE © 2024 - WEBSERV PROJECT</p>
+      </footer>
     </div>
   </body>
 </html>

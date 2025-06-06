@@ -142,106 +142,84 @@ void Server::handleNewConnection(Socket& listening_socket) {
 void Server::handleClientRequest(int client_fd) {
     std::cout << BLUE << "📨 Handling request from client " << client_fd << RESET << std::endl;
     
-    // Read the request with proper handling for Content-Length
+    // Check if we have a partial request already
     std::string raw_request;
+    if (_partial_requests.find(client_fd) != _partial_requests.end()) {
+        raw_request = _partial_requests[client_fd];
+    }
+    
+    // Read new data (this is called only when select() indicates data is available)
     char buffer[4096];
-    ssize_t total_bytes_read = 0;
-    ssize_t content_length = -1;
-    size_t headers_end_pos = std::string::npos;
+    memset(buffer, 0, sizeof(buffer));
+    ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
     
-    // First, read until we have the headers
-    while (headers_end_pos == std::string::npos) {
-        memset(buffer, 0, sizeof(buffer));
-        ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-        
-        if (bytes_read < 0) {
-            if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                std::cerr << RED << "❌ Error reading from client " << client_fd 
-                          << ": " << strerror(errno) << RESET << std::endl;
-                closeConnection(client_fd);
-            }
-            return;
-        }
-        
-        if (bytes_read == 0) {
-            std::cout << YELLOW << "🔌 Client " << client_fd << " disconnected" << RESET << std::endl;
-            closeConnection(client_fd);
-            return;
-        }
-        
-        raw_request.append(buffer, bytes_read);
-        total_bytes_read += bytes_read;
-        
-        // Check if we have the end of headers
-        headers_end_pos = raw_request.find("\r\n\r\n");
+    if (bytes_read < 0) {
+        // Since we only call this when select() says data is ready, 
+        // we should not get EAGAIN/EWOULDBLOCK, but handle gracefully
+        std::cerr << RED << "❌ Unexpected error reading from client " << client_fd << RESET << std::endl;
+        closeConnection(client_fd);
+        return;
+    }
+    
+    if (bytes_read == 0) {
+        std::cout << YELLOW << "🔌 Client " << client_fd << " disconnected" << RESET << std::endl;
+        closeConnection(client_fd);
+        return;
+    }
+    
+    raw_request.append(buffer, bytes_read);
+    
+    // Check if we have complete headers
+    size_t headers_end_pos = raw_request.find("\r\n\r\n");
+    if (headers_end_pos == std::string::npos) {
+        headers_end_pos = raw_request.find("\n\n");
         if (headers_end_pos == std::string::npos) {
-            headers_end_pos = raw_request.find("\n\n");
+            // Still no complete headers, store and wait for more data
+            _partial_requests[client_fd] = raw_request;
+            return;
         }
     }
     
-    // Extract Content-Length from headers if present
-    size_t cl_pos = raw_request.find("Content-Length:");
-    if (cl_pos == std::string::npos) {
-        cl_pos = raw_request.find("content-length:");
-    }
-    if (cl_pos != std::string::npos) {
-        size_t cl_start = raw_request.find(":", cl_pos) + 1;
-        size_t cl_end = raw_request.find("\r\n", cl_start);
-        if (cl_end == std::string::npos) {
-            cl_end = raw_request.find("\n", cl_start);
-        }
-        std::string cl_str = raw_request.substr(cl_start, cl_end - cl_start);
-        
-        // Trim whitespace
-        size_t first = cl_str.find_first_not_of(" \t");
-        size_t last = cl_str.find_last_not_of(" \t");
-        if (first != std::string::npos && last != std::string::npos) {
-            cl_str = cl_str.substr(first, last - first + 1);
-            content_length = atoi(cl_str.c_str());
+    // Parse content-length if present
+    ssize_t content_length = -1;
+    std::istringstream header_stream(raw_request);
+    std::string line;
+    while (std::getline(header_stream, line) && !line.empty()) {
+        if (line.find("Content-Length:") == 0 || line.find("content-length:") == 0) {
+            size_t colon_pos = line.find(':');
+            if (colon_pos != std::string::npos) {
+                std::string length_str = line.substr(colon_pos + 1);
+                // Remove leading/trailing whitespace
+                size_t start = length_str.find_first_not_of(" \t\r\n");
+                size_t end = length_str.find_last_not_of(" \t\r\n");
+                if (start != std::string::npos && end != std::string::npos) {
+                    length_str = length_str.substr(start, end - start + 1);
+                    content_length = std::atoi(length_str.c_str());
+                }
+            }
+            break;
         }
     }
     
-    // If we have Content-Length, make sure we read the full body
+    // Check if we have complete request (headers + body)
     if (content_length > 0) {
         size_t headers_end_marker_len = (raw_request.find("\r\n\r\n") != std::string::npos) ? 4 : 2;
         size_t expected_total_length = headers_end_pos + headers_end_marker_len + content_length;
         
-        // Continue reading until we have the full request
-        while (raw_request.length() < expected_total_length) {
-            memset(buffer, 0, sizeof(buffer));
-            
-            // Set a short timeout for non-blocking read
-            struct timeval timeout;
-            timeout.tv_sec = 1;  // 1 second timeout
-            timeout.tv_usec = 0;
-            
-            fd_set read_fds;
-            FD_ZERO(&read_fds);
-            FD_SET(client_fd, &read_fds);
-            
-            int select_result = select(client_fd + 1, &read_fds, NULL, NULL, &timeout);
-            if (select_result <= 0) {
-                break;
-            }
-            
-            ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-            
-            if (bytes_read <= 0) {
-                if (bytes_read < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
-                    std::cerr << RED << "❌ Error reading request body from client " << client_fd 
-                              << ": " << strerror(errno) << RESET << std::endl;
-                } else if (bytes_read == 0) {
-                    std::cout << YELLOW << "⚠️  Client closed connection while reading body" << RESET << std::endl;
-                }
-                break;
-            }
-            
-            raw_request.append(buffer, bytes_read);
-            total_bytes_read += bytes_read;
+        if (raw_request.length() < expected_total_length) {
+            // Store partial request and wait for more data
+            _partial_requests[client_fd] = raw_request;
+            _expected_lengths[client_fd] = expected_total_length;
+            return;
         }
     }
     
-    std::cout << CYAN << "📋 Raw request (" << total_bytes_read << " bytes):" << RESET << std::endl;
+    // We have a complete request, remove from partial requests
+    _partial_requests.erase(client_fd);
+    _expected_lengths.erase(client_fd);
+    
+    
+    std::cout << CYAN << "📋 Raw request (" << raw_request.length() << " bytes):" << RESET << std::endl;
     // Only print headers for readability, not the full body which may contain binary data
     size_t body_start = raw_request.find("\r\n\r\n");
     if (body_start == std::string::npos) {
@@ -342,8 +320,8 @@ void Server::sendSimpleResponse(int client_fd, const HttpRequest& request) {
     
     ssize_t bytes_sent = send(client_fd, response.c_str(), response.length(), 0);
     if (bytes_sent < 0) {
-        std::cerr << RED << "❌ Error sending response to client " << client_fd 
-                  << ": " << strerror(errno) << RESET << std::endl;
+        std::cerr << RED << "❌ Error sending response to client " << client_fd << RESET << std::endl;
+        closeConnection(client_fd);
     } else {
         std::cout << GREEN << "✅ Response sent to client " << client_fd 
                   << " (" << bytes_sent << " bytes)" << RESET << std::endl;
@@ -375,8 +353,8 @@ void Server::sendErrorResponse(int client_fd, int status_code, const std::string
     
     ssize_t bytes_sent = send(client_fd, response.c_str(), response.length(), 0);
     if (bytes_sent < 0) {
-        std::cerr << RED << "❌ Error sending error response to client " << client_fd 
-                  << ": " << strerror(errno) << RESET << std::endl;
+        std::cerr << RED << "❌ Error sending error response to client " << client_fd << RESET << std::endl;
+        closeConnection(client_fd);
     } else {
         std::cout << YELLOW << "⚠️  Error response sent to client " << client_fd 
                   << " (" << status_code << " " << status_text << ")" << RESET << std::endl;
@@ -444,7 +422,12 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
         response.setBody("");
         
         std::string response_str = response.toString();
-        send(client_fd, response_str.c_str(), response_str.length(), 0);
+        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
+        if (bytes_sent < 0) {
+            std::cerr << RED << "❌ Error sending redirect response" << RESET << std::endl;
+            closeConnection(client_fd);
+            return;
+        }
         std::cout << GREEN << "↗️  Redirect sent to " << location_config->redirect_url << RESET << std::endl;
         return;
     }
@@ -582,7 +565,10 @@ void Server::serveStaticFile(int client_fd, const HttpRequest& request,
     if (response.serveFile(file_path)) {
         std::string response_str = response.toString();
         ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
-        if (bytes_sent > 0) {
+        if (bytes_sent < 0) {
+            std::cerr << RED << "❌ Error sending file response" << RESET << std::endl;
+            closeConnection(client_fd);
+        } else if (bytes_sent > 0) {
             std::cout << GREEN << "✅ File served successfully (" << bytes_sent << " bytes)" << RESET << std::endl;
         }
     } else {
@@ -594,7 +580,12 @@ void Server::serveStaticFile(int client_fd, const HttpRequest& request,
         
         response.serveErrorPage(404, error_page_path);
         std::string response_str = response.toString();
-        send(client_fd, response_str.c_str(), response_str.length(), 0);
+        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
+        if (bytes_sent < 0) {
+            std::cerr << RED << "❌ Error sending 404 response" << RESET << std::endl;
+            closeConnection(client_fd);
+            return;
+        }
         std::cout << YELLOW << "⚠️  404 Not Found: " << file_path << RESET << std::endl;
     }
 }
@@ -656,12 +647,20 @@ void Server::executeCgiRequest(int client_fd, const HttpRequest& request,
     if (response.executeCgi(script_path, location_config.cgi_path, env_vars, request.getBody())) {
         std::string response_str = response.toString();
         ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
-        if (bytes_sent > 0) {
+        if (bytes_sent < 0) {
+            std::cerr << RED << "❌ Error sending CGI response" << RESET << std::endl;
+            closeConnection(client_fd);
+        } else if (bytes_sent > 0) {
             std::cout << GREEN << "✅ CGI response sent successfully (" << bytes_sent << " bytes)" << RESET << std::endl;
         }
     } else {
         std::string response_str = response.toString();
-        send(client_fd, response_str.c_str(), response_str.length(), 0);
+        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
+        if (bytes_sent < 0) {
+            std::cerr << RED << "❌ Error sending CGI error response" << RESET << std::endl;
+            closeConnection(client_fd);
+            return;
+        }
         std::cout << RED << "❌ CGI execution failed: " << script_path << RESET << std::endl;
     }
 }
@@ -804,7 +803,12 @@ void Server::handleFileUpload(int client_fd, const HttpRequest& request,
         response << response_body;
         
         std::string response_str = response.str();
-        send(client_fd, response_str.c_str(), response_str.length(), 0);
+        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
+        if (bytes_sent < 0) {
+            std::cerr << RED << "❌ Error sending upload response" << RESET << std::endl;
+            closeConnection(client_fd);
+            return;
+        }
         
     } catch (const std::exception& e) {
         sendErrorResponse(client_fd, 500, "Internal Server Error: " + std::string(e.what()));

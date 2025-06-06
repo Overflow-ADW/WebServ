@@ -18,6 +18,10 @@ private:
     int _max_fd;
     bool _running;
     
+    // For handling partial requests (multi-read scenarios)
+    std::map<int, std::string> _partial_requests;
+    std::map<int, size_t> _expected_lengths;
+    
     void setupSockets();
     void handleNewConnection(Socket& listening_socket);
     void handleClientRequest(int client_fd);

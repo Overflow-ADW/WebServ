@@ -175,6 +175,18 @@ void ConfigParser::parseLocationBlock(std::ifstream& file, std::string& line, co
             std::cout << CYAN << "      ✓ Redirect: " << location_config.redirect_code 
                       << " -> " << location_config.redirect_url << RESET << std::endl;
             
+        } else if (tokens[0] == "root" && tokens.size() >= 2) {
+            location_config.root = tokens[1];
+            std::cout << CYAN << "      ✓ Root: " << location_config.root << RESET << std::endl;
+            
+        } else if (tokens[0] == "index" && tokens.size() >= 2) {
+            location_config.index = tokens[1];
+            std::cout << CYAN << "      ✓ Index: " << location_config.index << RESET << std::endl;
+            
+        } else if (tokens[0] == "client_max_body_size" && tokens.size() >= 2) {
+            location_config.client_max_body_size = std::atoi(tokens[1].c_str());
+            std::cout << CYAN << "      ✓ Max body size: " << location_config.client_max_body_size << " bytes" << RESET << std::endl;
+            
         } else {
             std::cout << YELLOW << "      ⚠️  Unknown location directive: " << tokens[0] << RESET << std::endl;
         }
@@ -279,6 +291,18 @@ void ConfigParser::printConfig() const {
                 
                 if (!location.cgi_path.empty()) {
                     std::cout << "      CGI path: " << location.cgi_path << std::endl;
+                }
+                
+                if (!location.root.empty()) {
+                    std::cout << "      Root: " << location.root << std::endl;
+                }
+                
+                if (!location.index.empty()) {
+                    std::cout << "      Index: " << location.index << std::endl;
+                }
+                
+                if (location.client_max_body_size > 0) {
+                    std::cout << "      Max body size: " << location.client_max_body_size << " bytes" << std::endl;
                 }
                 
                 std::cout << "      Autoindex: " << (location.autoindex ? "ON" : "OFF") << std::endl;

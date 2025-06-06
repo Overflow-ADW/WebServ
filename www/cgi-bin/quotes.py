@@ -27,149 +27,106 @@ quotes = [
 # Sélectionner une citation aléatoire
 quote, author = random.choice(quotes)
 
-# Couleurs aléatoires pour le thème
-colors = [
-    ("#FF6B6B", "#4ECDC4"),  # Rouge corail et turquoise
-    ("#A8E6CF", "#FF8B94"),  # Vert menthe et rose
-    ("#95E1D3", "#F3D250"),  # Bleu menthe et jaune
-    ("#C7CEEA", "#FFB3BA"),  # Lavande et rose pâle
-    ("#B4E7CE", "#FFC8DD"),  # Vert clair et rose bonbon
-]
-
-primary_color, secondary_color = random.choice(colors)
-
-# Emojis aléatoires
-emojis = ["🌟", "💡", "🚀", "⭐", "✨", "🎯", "🎪", "🎨", "🎭", "🎲"]
-emoji = random.choice(emojis)
-
 # Récupérer des informations de la requête
 user_agent = os.environ.get('HTTP_USER_AGENT', 'Navigateur inconnu')
 timestamp = datetime.now().strftime("%H:%M:%S")
 
-# HTML de réponse
+# HTML de réponse avec style brutalist cohérent
 print(f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{emoji} Citation Inspirante - Webserv CGI</title>
+    <title>QUOTES.EXE - BRUTALIST INSPIRATION ENGINE</title>
+    <link rel="stylesheet" href="../styleIndex.css">
     <style>
-        body {{
-            font-family: 'Georgia', serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, {primary_color} 0%, {secondary_color} 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap');
+        
+        .quote-block {{
+            border: 2px solid #333;
+            padding: 2rem;
+            margin: 2rem 0;
+            transition: all 0.3s;
+            background: rgba(0, 255, 0, 0.05);
         }}
-        .container {{
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 600px;
-            backdrop-filter: blur(10px);
+        
+        .quote-block:hover {{
+            border-color: #00ff00;
         }}
-        .emoji {{
-            font-size: 3em;
-            margin-bottom: 20px;
+        
+        .quote-text {{
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            font-family: "JetBrains Mono", monospace;
         }}
-        h1 {{
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2em;
+        
+        .quote-author {{
+            font-size: 1rem;
+            color: #888;
+            text-align: right;
+            font-weight: 700;
         }}
-        .quote {{
-            font-size: 1.4em;
-            font-style: italic;
-            color: #444;
-            line-height: 1.6;
-            margin: 30px 0;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 15px;
-            border-left: 5px solid {primary_color};
-        }}
-        .author {{
-            font-size: 1.1em;
-            color: #666;
-            font-weight: bold;
-            margin-top: 20px;
-        }}
-        .refresh-btn {{
-            background: {primary_color};
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 25px;
-            font-size: 1.1em;
-            cursor: pointer;
-            margin: 20px 10px;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }}
-        .refresh-btn:hover {{
-            background: {secondary_color};
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }}
-        .info {{
-            background: rgba(0,0,0,0.05);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-size: 0.9em;
-            color: #666;
-        }}
-        .links {{
-            margin-top: 30px;
-        }}
-        .links a {{
-            color: {primary_color};
-            text-decoration: none;
-            margin: 0 15px;
-            font-weight: bold;
-        }}
-        .links a:hover {{
-            color: {secondary_color};
-            text-decoration: underline;
+        
+        .session-info {{
+            border: 2px solid #333;
+            padding: 1rem;
+            margin: 2rem 0;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.9rem;
+            color: #888;
         }}
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="emoji">{emoji}</div>
-        <h1>Citation Inspirante du Moment</h1>
-        
-        <div class="quote">
-            "{quote}"
-        </div>
-        
-        <div class="author">
-            — {author}
-        </div>
-        
-        <a href="/cgi-bin/quotes.py" class="refresh-btn">
-            🔄 Nouvelle Citation
-        </a>
-        
-        <div class="info">
-            <strong>📊 Informations de la session</strong><br>
-            🕒 Généré à : {timestamp}<br>
-            🌐 Navigateur : {user_agent[:50]}{"..." if len(user_agent) > 50 else ""}<br>
-            🎲 Citation {quotes.index((quote, author)) + 1} sur {len(quotes)}
-        </div>
-        
-        <div class="links">
-            <a href="/">🏠 Accueil</a>
-            <a href="/cgi-bin">📜 Scripts CGI</a>
-            <a href="/cgi-bin/test.py">🐍 Test Python</a>
-            <a href="/upload.html">📤 Upload</a>
-        </div>
+        <header class="header">
+            <h1 class="title">QUOTES.EXE</h1>
+            <p class="subtitle">BRUTALIST INSPIRATION ENGINE</p>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-block">
+                <div class="stat-number">{len(quotes)}</div>
+                <div class="stat-label">Total Quotes</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-number">RND</div>
+                <div class="stat-label">Selection Method</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-number">CGI</div>
+                <div class="stat-label">Generation Type</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-number">PY3</div>
+                <div class="stat-label">Runtime Engine</div>
+            </div>
+        </section>
+
+        <section class="quote-block">
+            <div class="quote-text">"{quote}"</div>
+            <div class="quote-author">— {author}</div>
+        </section>
+
+        <section class="session-info">
+            <strong>SESSION INFO:</strong><br>
+            TIMESTAMP: {timestamp}<br>
+            USER_AGENT: {user_agent[:60]}{"..." if len(user_agent) > 60 else ""}<br>
+            QUOTE_ID: {quotes.index((quote, author)) + 1:02d}/{len(quotes):02d}
+        </section>
+
+        <section class="nav-section">
+            <div class="nav-grid">
+                <a href="/cgi-bin/quotes.py" class="nav-button">NEW QUOTE</a>
+                <a href="/cgi-bin/index.py" class="nav-button">CGI SCRIPTS</a>
+                <a href="/" class="nav-button">HOME</a>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>QUOTES.EXE © 2024 - WEBSERV PROJECT</p>
+        </footer>
     </div>
 </body>
 </html>""")
