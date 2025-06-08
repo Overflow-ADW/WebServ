@@ -103,7 +103,7 @@ total_tests=4
 # recv() conformité
 if grep -q "if (bytes_read < 0)" src/server/Server.cpp && grep -q "if (bytes_read == 0)" src/server/Server.cpp; then
     echo -e "  ${GREEN}✅ recv() - Conforme (100%)${NC}"
-    ((conformity_score++))
+    conformity_score=$((conformity_score + 1))
 else
     echo -e "  ${RED}❌ recv() - Non conforme${NC}"
 fi
@@ -111,7 +111,7 @@ fi
 # send() conformité
 if [ "$send_checks" -gt 5 ]; then
     echo -e "  ${GREEN}✅ send() - Conforme (100%)${NC}"
-    ((conformity_score++))
+    conformity_score=$((conformity_score + 1))
 else
     echo -e "  ${RED}❌ send() - Non conforme${NC}"
 fi
@@ -119,7 +119,7 @@ fi
 # read() conformité
 if grep -q "if (bytes_read < 0)" src/http/HttpResponse.cpp; then
     echo -e "  ${GREEN}✅ read() - Conforme (90%)${NC}"
-    ((conformity_score++))
+    conformity_score=$((conformity_score + 1))
 else
     echo -e "  ${RED}❌ read() - Non conforme${NC}"
 fi
@@ -127,7 +127,7 @@ fi
 # write() conformité
 if grep -q "if (bytes_written < 0)" src/http/HttpResponse.cpp; then
     echo -e "  ${GREEN}✅ write() - Conforme (95%)${NC}"
-    ((conformity_score++))
+    conformity_score=$((conformity_score + 1))
 else
     echo -e "  ${RED}❌ write() - Non conforme${NC}"
 fi

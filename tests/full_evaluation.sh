@@ -48,8 +48,8 @@ fi
 
 # Vérification des fichiers requis
 echo "📁 Vérification des fichiers..."
-required_files=("webserv" "configs/default.conf" "Makefile")
-for file in "${required_files[@]}"; do
+required_files="webserv configs/default.conf Makefile"
+for file in $required_files; do
     if [ -f "$file" ]; then
         print_status "OK" "Fichier $file présent"
     else

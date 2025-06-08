@@ -405,22 +405,7 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
     
     std::cout << CYAN << "📍 Using location: " << location_config->path << RESET << std::endl;
     
-    // Check if method is allowed
-    bool method_allowed = false;
-    for (size_t i = 0; i < location_config->allowed_methods.size(); ++i) {
-        if (location_config->allowed_methods[i] == request.getMethod()) {
-            method_allowed = true;
-            break;
-        }
-    }
-    
-    if (!method_allowed) {
-        std::cerr << RED << "❌ Method " << request.getMethod() << " not allowed for " << request.getPath() << RESET << std::endl;
-        sendErrorResponse(client_fd, 405, "Method Not Allowed");
-        return;
-    }
-    
-    // Handle redirections
+    // Handle redirections first
     if (!location_config->redirect_url.empty()) {
         HttpResponse response;
         response.setStatus(location_config->redirect_code, HttpResponse::getStatusText(location_config->redirect_code));
@@ -435,9 +420,24 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
         return;
     }
     
-    // Handle CGI requests
+    // Handle CGI requests before method validation (CGI scripts handle their own method validation)
     if (isCgiRequest(request.getPath(), *location_config)) {
         executeCgiRequest(client_fd, request, *server_config, *location_config);
+        return;
+    }
+    
+    // Check if method is allowed for non-CGI requests
+    bool method_allowed = false;
+    for (size_t i = 0; i < location_config->allowed_methods.size(); ++i) {
+        if (location_config->allowed_methods[i] == request.getMethod()) {
+            method_allowed = true;
+            break;
+        }
+    }
+    
+    if (!method_allowed) {
+        std::cerr << RED << "❌ Method " << request.getMethod() << " not allowed for " << request.getPath() << RESET << std::endl;
+        sendErrorResponse(client_fd, 405, "Method Not Allowed");
         return;
     }
     
@@ -966,9 +966,9 @@ void Server::handlePendingWrites(int client_fd) {
         _write_buffers.erase(buffer_it);
         _write_positions.erase(pos_it);
         std::cout << GREEN << "✅ All data sent to client " << client_fd 
-                  << " - waiting for client to close connection" << RESET << std::endl;
-        // Don't close connection here - let client close it naturally
-        // Connection will be closed when client disconnects or on next read attempt
+                  << " - closing connection" << RESET << std::endl;
+        // Close connection immediately after sending complete response with Connection: close
+        closeConnection(client_fd);
     }
 }
 

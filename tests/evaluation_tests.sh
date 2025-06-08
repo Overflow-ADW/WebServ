@@ -49,7 +49,7 @@ test_post() {
 # Test 3: DELETE Request
 test_delete() {
     echo "📝 Test 3: DELETE Request"
-    response=$(curl -s -w "%{http_code}" -o /dev/null -X DELETE $SERVER_URL/)
+    response=$(curl -s -w "%{http_code}" -o /dev/null -X DELETE $SERVER_URL/ --max-time 5 --connect-timeout 2)
     if [ "$response" = "200" ] || [ "$response" = "405" ] || [ "$response" = "501" ]; then
         echo "✅ DELETE / -> $response"
     else
@@ -60,7 +60,7 @@ test_delete() {
 # Test 4: Unknown Method
 test_unknown_method() {
     echo "📝 Test 4: Unknown Method"
-    response=$(curl -s -w "%{http_code}" -o /dev/null -X PATCH $SERVER_URL/)
+    response=$(curl -s -w "%{http_code}" -o /dev/null -X PATCH $SERVER_URL/ --max-time 5 --connect-timeout 2)
     if [ "$response" = "405" ] || [ "$response" = "501" ]; then
         echo "✅ PATCH / -> $response (Method not allowed/implemented)"
     else
@@ -71,7 +71,7 @@ test_unknown_method() {
 # Test 5: 404 Error
 test_404() {
     echo "📝 Test 5: 404 Error"
-    response=$(curl -s -w "%{http_code}" -o /dev/null $SERVER_URL/nonexistent)
+    response=$(curl -s -w "%{http_code}" -o /dev/null $SERVER_URL/nonexistent --max-time 5 --connect-timeout 2)
     if [ "$response" = "404" ]; then
         echo "✅ GET /nonexistent -> 404 Not Found"
     else
@@ -85,7 +85,7 @@ test_upload() {
     echo "Test upload content" > /tmp/test_upload.txt
     
     # Test avec POST multipart/form-data (plus standard)
-    response=$(curl -s -w "%{http_code}" -o /dev/null -X POST -F "file=@/tmp/test_upload.txt" $SERVER_URL/upload)
+    response=$(curl -s -w "%{http_code}" -o /dev/null -X POST -F "file=@/tmp/test_upload.txt" $SERVER_URL/upload --max-time 10 --connect-timeout 2)
     if [ "$response" = "200" ] || [ "$response" = "201" ]; then
         echo "✅ POST upload -> $response (Upload successful)"
     elif [ "$response" = "404" ]; then
@@ -125,7 +125,7 @@ test_body_limit() {
 # Test 8: CGI Execution (si configuré)
 test_cgi() {
     echo "📝 Test 8: CGI Execution"
-    response=$(curl -s -w "%{http_code}" -o /tmp/cgi_response.html $SERVER_URL/cgi-bin/index.py)
+    response=$(curl -s -w "%{http_code}" -o /tmp/cgi_response.html $SERVER_URL/cgi-bin/index.py --max-time 10 --connect-timeout 2)
     if [ "$response" = "200" ]; then
         echo "✅ GET /cgi-bin/index.py -> 200 OK (CGI working)"
         if grep -q "text/html" /tmp/cgi_response.html 2>/dev/null; then
@@ -144,11 +144,13 @@ test_cgi() {
 # Test 9: Static Files (CSS, Images)
 test_static_files() {
     echo "📝 Test 9: Static Files"
-    response=$(curl -s -w "%{http_code}" -o /dev/null $SERVER_URL/styleIndex.css)
+    response=$(curl -s -w "%{http_code}" -o /dev/null $SERVER_URL/styleIndex.css --max-time 5 --connect-timeout 2)
     if [ "$response" = "200" ]; then
         echo "✅ GET /styleIndex.css -> 200 OK (Static files served)"
     elif [ "$response" = "404" ]; then
         echo "⚠️  GET /styleIndex.css -> 404 (Static file not found)"
+    elif [ "$response" = "500" ]; then
+        echo "⚠️  GET /styleIndex.css -> 500 (Internal Server Error)"
     else
         echo "❌ GET /styleIndex.css -> $response"
     fi

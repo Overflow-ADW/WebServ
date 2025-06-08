@@ -80,13 +80,13 @@ run_test "Large file upload handling" \
 
 # Verify uploaded files exist
 echo -e "${BLUE}Verifying uploaded files:${NC}"
-if [[ -f "uploads/test_integration.txt" ]]; then
+if [ -f "uploads/test_integration.txt" ]; then
     echo -e "${GREEN}✅ test_integration.txt uploaded successfully${NC}"
 else
     echo -e "${RED}❌ test_integration.txt not found${NC}"
 fi
 
-if [[ -f "uploads/large_test.bin" ]]; then
+if [ -f "uploads/large_test.bin" ]; then
     echo -e "${GREEN}✅ large_test.bin uploaded successfully${NC}"
 else
     echo -e "${RED}❌ large_test.bin not found${NC}"
@@ -96,7 +96,7 @@ echo ""
 echo "=== Test Summary ==="
 echo -e "Passed: ${GREEN}$passed${NC}/$total tests"
 
-if [[ $passed -eq $total ]]; then
+if [ $passed -eq $total ]; then
     echo -e "${GREEN}🎉 All tests passed! Enhanced utilities integration successful!${NC}"
 else
     echo -e "${RED}❌ Some tests failed. Check the output above.${NC}"
