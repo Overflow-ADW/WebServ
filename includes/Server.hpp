@@ -22,11 +22,20 @@ private:
     std::map<int, std::string> _partial_requests;
     std::map<int, size_t> _expected_lengths;
     
+    // Write buffer system for select() compliance
+    std::map<int, std::string> _write_buffers;  // Pending data to write per client
+    std::map<int, size_t> _write_positions;     // Current write position per client
+    
     void setupSockets();
     void handleNewConnection(Socket& listening_socket);
     void handleClientRequest(int client_fd);
     void handleClientResponse(int client_fd);
     void closeConnection(int client_fd);
+    
+    // Select()-compliant write system
+    void queueResponse(int client_fd, const std::string& response);
+    void handlePendingWrites(int client_fd);
+    bool hasDataToWrite(int client_fd) const;
     
     // HTTP Response helpers
     void sendSimpleResponse(int client_fd, const HttpRequest& request);

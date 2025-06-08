@@ -70,6 +70,12 @@ void Server::run() {
             int fd = it->first;
             if (fd >= 0) {  // Check if fd is valid
                 FD_SET(fd, &_read_fds);
+                
+                // Add to write_fds if there's pending data to write
+                if (hasDataToWrite(fd)) {
+                    FD_SET(fd, &_write_fds);
+                }
+                
                 if (fd > _max_fd) {
                     _max_fd = fd;
                 }
@@ -118,8 +124,13 @@ void Server::run() {
         
         for (size_t i = 0; i < client_fds.size(); ++i) {
             int fd = client_fds[i];
-            if (_client_sockets.find(fd) != _client_sockets.end() && FD_ISSET(fd, &_read_fds)) {
-                handleClientRequest(fd);
+            if (_client_sockets.find(fd) != _client_sockets.end()) {
+                if (FD_ISSET(fd, &_read_fds)) {
+                    handleClientRequest(fd);
+                }
+                if (FD_ISSET(fd, &_write_fds)) {
+                    handlePendingWrites(fd);
+                }
             }
         }
     }
@@ -249,8 +260,8 @@ void Server::handleClientRequest(int client_fd) {
         sendErrorResponse(client_fd, 400, "Bad Request");
     }
     
-    // Pour le moment, fermer la connexion après la réponse
-    closeConnection(client_fd);
+    // Note: Connection will be closed automatically after response is sent
+    // by the write buffer system in handlePendingWrites()
 }
 
 void Server::handleClientResponse(int client_fd) {
@@ -266,6 +277,14 @@ void Server::closeConnection(int client_fd) {
         close(client_fd);
         std::cout << YELLOW << "🔌 Connection closed for fd " << client_fd << RESET << std::endl;
     }
+    
+    // Clean up write buffers and positions
+    _write_buffers.erase(client_fd);
+    _write_positions.erase(client_fd);
+    
+    // Clean up partial request data
+    _partial_requests.erase(client_fd);
+    _expected_lengths.erase(client_fd);
 }
 
 void Server::stop() {
@@ -318,14 +337,8 @@ void Server::sendSimpleResponse(int client_fd, const HttpRequest& request) {
         }
     }
     
-    ssize_t bytes_sent = send(client_fd, response.c_str(), response.length(), 0);
-    if (bytes_sent < 0) {
-        std::cerr << RED << "❌ Error sending response to client " << client_fd << RESET << std::endl;
-        closeConnection(client_fd);
-    } else {
-        std::cout << GREEN << "✅ Response sent to client " << client_fd 
-                  << " (" << bytes_sent << " bytes)" << RESET << std::endl;
-    }
+    // Queue response instead of direct send() - compliant with select() requirement
+    queueResponse(client_fd, response);
 }
 
 void Server::sendErrorResponse(int client_fd, int status_code, const std::string& message) {
@@ -351,14 +364,8 @@ void Server::sendErrorResponse(int client_fd, int status_code, const std::string
     response += "<p>" + message + "</p>";
     response += "</body></html>";
     
-    ssize_t bytes_sent = send(client_fd, response.c_str(), response.length(), 0);
-    if (bytes_sent < 0) {
-        std::cerr << RED << "❌ Error sending error response to client " << client_fd << RESET << std::endl;
-        closeConnection(client_fd);
-    } else {
-        std::cout << YELLOW << "⚠️  Error response sent to client " << client_fd 
-                  << " (" << status_code << " " << status_text << ")" << RESET << std::endl;
-    }
+    // Queue response instead of direct send() - compliant with select() requirement
+    queueResponse(client_fd, response);
 }
 
 void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
@@ -422,13 +429,9 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
         response.setBody("");
         
         std::string response_str = response.toString();
-        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
-        if (bytes_sent < 0) {
-            std::cerr << RED << "❌ Error sending redirect response" << RESET << std::endl;
-            closeConnection(client_fd);
-            return;
-        }
-        std::cout << GREEN << "↗️  Redirect sent to " << location_config->redirect_url << RESET << std::endl;
+        // Queue response instead of direct send() - compliant with select() requirement
+        queueResponse(client_fd, response_str);
+        std::cout << GREEN << "↗️  Redirect queued to " << location_config->redirect_url << RESET << std::endl;
         return;
     }
     
@@ -564,13 +567,9 @@ void Server::serveStaticFile(int client_fd, const HttpRequest& request,
     HttpResponse response;
     if (response.serveFile(file_path)) {
         std::string response_str = response.toString();
-        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
-        if (bytes_sent < 0) {
-            std::cerr << RED << "❌ Error sending file response" << RESET << std::endl;
-            closeConnection(client_fd);
-        } else if (bytes_sent > 0) {
-            std::cout << GREEN << "✅ File served successfully (" << bytes_sent << " bytes)" << RESET << std::endl;
-        }
+        // Queue response instead of direct send() - compliant with select() requirement
+        queueResponse(client_fd, response_str);
+        std::cout << GREEN << "✅ File response queued (" << response_str.length() << " bytes)" << RESET << std::endl;
     } else {
         // Try to serve custom 404 page
         std::string error_page_path;
@@ -580,13 +579,9 @@ void Server::serveStaticFile(int client_fd, const HttpRequest& request,
         
         response.serveErrorPage(404, error_page_path);
         std::string response_str = response.toString();
-        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
-        if (bytes_sent < 0) {
-            std::cerr << RED << "❌ Error sending 404 response" << RESET << std::endl;
-            closeConnection(client_fd);
-            return;
-        }
-        std::cout << YELLOW << "⚠️  404 Not Found: " << file_path << RESET << std::endl;
+        // Queue response instead of direct send() - compliant with select() requirement
+        queueResponse(client_fd, response_str);
+        std::cout << YELLOW << "⚠️  404 Not Found queued: " << file_path << RESET << std::endl;
     }
 }
 
@@ -646,21 +641,13 @@ void Server::executeCgiRequest(int client_fd, const HttpRequest& request,
     HttpResponse response;
     if (response.executeCgi(script_path, location_config.cgi_path, env_vars, request.getBody())) {
         std::string response_str = response.toString();
-        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
-        if (bytes_sent < 0) {
-            std::cerr << RED << "❌ Error sending CGI response" << RESET << std::endl;
-            closeConnection(client_fd);
-        } else if (bytes_sent > 0) {
-            std::cout << GREEN << "✅ CGI response sent successfully (" << bytes_sent << " bytes)" << RESET << std::endl;
-        }
+        // Queue response instead of direct send() - compliant with select() requirement
+        queueResponse(client_fd, response_str);
+        std::cout << GREEN << "✅ CGI response queued (" << response_str.length() << " bytes)" << RESET << std::endl;
     } else {
         std::string response_str = response.toString();
-        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
-        if (bytes_sent < 0) {
-            std::cerr << RED << "❌ Error sending CGI error response" << RESET << std::endl;
-            closeConnection(client_fd);
-            return;
-        }
+        // Queue response instead of direct send() - compliant with select() requirement
+        queueResponse(client_fd, response_str);
         std::cout << RED << "❌ CGI execution failed: " << script_path << RESET << std::endl;
     }
 }
@@ -803,12 +790,9 @@ void Server::handleFileUpload(int client_fd, const HttpRequest& request,
         response << response_body;
         
         std::string response_str = response.str();
-        ssize_t bytes_sent = send(client_fd, response_str.c_str(), response_str.length(), 0);
-        if (bytes_sent < 0) {
-            std::cerr << RED << "❌ Error sending upload response" << RESET << std::endl;
-            closeConnection(client_fd);
-            return;
-        }
+        // Queue response instead of direct send() - compliant with select() requirement
+        queueResponse(client_fd, response_str);
+        std::cout << GREEN << "✅ Upload success response queued (" << response_str.length() << " bytes)" << RESET << std::endl;
         
     } catch (const std::exception& e) {
         sendErrorResponse(client_fd, 500, "Internal Server Error: " + std::string(e.what()));
@@ -919,4 +903,85 @@ bool Server::saveUploadedFile(const std::string& filename, const std::string& co
     
     std::cout << "File uploaded successfully: " << file_path << std::endl;
     return true;
+}
+
+void Server::queueResponse(int client_fd, const std::string& response) {
+    // Add response to write buffer for this client
+    _write_buffers[client_fd] = response;
+    _write_positions[client_fd] = 0;
+    
+    std::cout << BLUE << "📤 Response queued for client " << client_fd 
+              << " (" << response.length() << " bytes)" << RESET << std::endl;
+}
+
+void Server::handlePendingWrites(int client_fd) {
+    std::map<int, std::string>::iterator buffer_it = _write_buffers.find(client_fd);
+    std::map<int, size_t>::iterator pos_it = _write_positions.find(client_fd);
+    
+    if (buffer_it == _write_buffers.end() || pos_it == _write_positions.end()) {
+        return; // No pending data for this client
+    }
+    
+    const std::string& buffer = buffer_it->second;
+    size_t& position = pos_it->second;
+    
+    if (position >= buffer.length()) {
+        // All data sent, clean up
+        _write_buffers.erase(buffer_it);
+        _write_positions.erase(pos_it);
+        std::cout << GREEN << "✅ All data already sent to client " << client_fd 
+                  << " - connection ready for next request" << RESET << std::endl;
+        return;
+    }
+    
+    // Send remaining data
+    size_t remaining = buffer.length() - position;
+    ssize_t bytes_sent = send(client_fd, buffer.c_str() + position, remaining, 0);
+    
+    if (bytes_sent < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            // Socket not ready for writing, will try again next select()
+            return;
+        }
+        // Real error, close connection
+        std::cerr << RED << "❌ Error sending data to client " << client_fd << RESET << std::endl;
+        closeConnection(client_fd);
+        return;
+    }
+    
+    if (bytes_sent == 0) {
+        // Connection closed by peer
+        std::cout << YELLOW << "🔌 Client " << client_fd << " closed connection during write" << RESET << std::endl;
+        closeConnection(client_fd);
+        return;
+    }
+    
+    // Update position
+    position += bytes_sent;
+    std::cout << GREEN << "✅ Sent " << bytes_sent << " bytes to client " << client_fd 
+              << " (" << position << "/" << buffer.length() << ")" << RESET << std::endl;
+    
+    // Check if all data sent
+    if (position >= buffer.length()) {
+        _write_buffers.erase(buffer_it);
+        _write_positions.erase(pos_it);
+        std::cout << GREEN << "✅ All data sent to client " << client_fd 
+                  << " - waiting for client to close connection" << RESET << std::endl;
+        // Don't close connection here - let client close it naturally
+        // Connection will be closed when client disconnects or on next read attempt
+    }
+}
+
+bool Server::hasDataToWrite(int client_fd) const {
+    std::map<int, std::string>::const_iterator it = _write_buffers.find(client_fd);
+    if (it == _write_buffers.end()) {
+        return false;
+    }
+    
+    std::map<int, size_t>::const_iterator pos_it = _write_positions.find(client_fd);
+    if (pos_it == _write_positions.end()) {
+        return false;
+    }
+    
+    return pos_it->second < it->second.length();
 }
