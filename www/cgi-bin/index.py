@@ -31,8 +31,8 @@ html_content = """<!DOCTYPE html>
                 <div class="stat-label">Python Scripts</div>
             </div>
             <div class="stat-block">
-                <div class="stat-number">SH</div>
-                <div class="stat-label">Shell Scripts</div>
+                <div class="stat-number">GET/POST</div>
+                <div class="stat-label">Method</div>
             </div>
             <div class="stat-block">
                 <div class="stat-number">ENV</div>

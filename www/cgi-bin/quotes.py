@@ -90,8 +90,8 @@ print(f"""<!DOCTYPE html>
                 <div class="stat-label">Total Quotes</div>
             </div>
             <div class="stat-block">
-                <div class="stat-number">RND</div>
-                <div class="stat-label">Selection Method</div>
+                <div class="stat-number">GET</div>
+                <div class="stat-label">Method</div>
             </div>
             <div class="stat-block">
                 <div class="stat-number">CGI</div>
