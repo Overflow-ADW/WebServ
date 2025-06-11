@@ -31,13 +31,12 @@ quote, author = random.choice(quotes)
 user_agent = os.environ.get('HTTP_USER_AGENT', 'Navigateur inconnu')
 timestamp = datetime.now().strftime("%H:%M:%S")
 
-# HTML de réponse avec style brutalist cohérent
 print(f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUOTES.EXE - BRUTALIST INSPIRATION ENGINE</title>
+    <title>QUOTES.EXE - INSPIRATION ENGINE</title>
     <link rel="stylesheet" href="../styleIndex.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap');
@@ -82,7 +81,7 @@ print(f"""<!DOCTYPE html>
     <div class="container">
         <header class="header">
             <h1 class="title">QUOTES.EXE</h1>
-            <p class="subtitle">BRUTALIST INSPIRATION ENGINE</p>
+            <p class="subtitle">INSPIRATION ENGINE</p>
         </header>
 
         <section class="stats-grid">

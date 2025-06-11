@@ -1,42 +1,42 @@
-/* Brutalist CSS for Webserv */
+/* CSS for Webserv */
 body {
-    font-family: 'JetBrains Mono', monospace;
-    background-color: #1a1a1a;
-    color: #ffffff;
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
+  font-family: "JetBrains Mono", monospace;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
 }
 
 .container {
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-    padding: 50px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 50px 20px;
 }
 
 h1 {
-    font-size: 2.5em;
-    margin-bottom: 20px;
-    font-weight: 800;
-    text-transform: uppercase;
+  font-size: 2.5em;
+  margin-bottom: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .feature {
-    background-color: #222;
-    border: 2px solid #333;
-    padding: 20px;
-    margin: 20px 0;
-    transition: all 0.3s;
+  background-color: #222;
+  border: 2px solid #333;
+  padding: 20px;
+  margin: 20px 0;
+  transition: all 0.3s;
 }
 
 .feature:hover {
-    border-color: #00ff00;
-    transform: translateY(-2px);
+  border-color: #00ff00;
+  transform: translateY(-2px);
 }
 
 .status {
-    color: #00ff00;
-    font-weight: bold;
-    text-transform: uppercase;
+  color: #00ff00;
+  font-weight: bold;
+  text-transform: uppercase;
 }

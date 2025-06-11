@@ -8,7 +8,7 @@ html_content = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGI.EXE - BRUTALIST SCRIPT EXECUTION</title>
+    <title>CGI.EXE - SCRIPT EXECUTION</title>
     <link rel="stylesheet" href="../styleIndex.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Space+Grotesk:wght@300;400;500;700;900&display=swap');
@@ -18,7 +18,7 @@ html_content = """<!DOCTYPE html>
     <div class="container">
         <header class="header">
             <h1 class="title">CGI.EXE</h1>
-            <p class="subtitle">BRUTALIST SCRIPT EXECUTION</p>
+            <p class="subtitle">SCRIPT EXECUTION</p>
         </header>
 
         <section class="stats-grid">
@@ -55,7 +55,7 @@ html_content = """<!DOCTYPE html>
                 <p class="feature-description">
                     Inspirational quote generator with elegant interface.
                     Displays randomly selected motivational quotes with
-                    brutalist styling and smooth transitions.
+                     smooth transitions.
                 </p>
                 <a href="/cgi-bin/quotes.py" class="nav-button">EXECUTE</a>
             </div>
