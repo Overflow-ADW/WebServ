@@ -135,7 +135,7 @@ cat << 'EOF'
         </section>
 
         <footer class="footer">
-            <p>SHELL.EXE © 2024 - WEBSERV PROJECT</p>
+            <p>WEBSERV © 2025 - ECOLE 42 PROJECT</p>
         </footer>
     </div>
 </body>
