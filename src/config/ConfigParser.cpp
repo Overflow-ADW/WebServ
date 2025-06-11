@@ -227,76 +227,85 @@ const std::vector<LocationConfig>& ConfigParser::getLocations(const std::string&
 }
 
 void ConfigParser::printConfig() const {
-    std::cout << CYAN << "\n=== Configuration Debug ===" << RESET << std::endl;
+    std::ofstream logFile("logConfig.log");
+    if (!logFile.is_open()) {
+        std::cerr << "Erreur: Impossible d'ouvrir le fichier logConfig" << std::endl;
+        return;
+    }
+
+    logFile << "=== Configuration Debug ===" << std::endl;
     
     for (size_t i = 0; i < _servers.size(); ++i) {
         const ServerConfig& server = _servers[i];
-        std::cout << GREEN << "\n  Server " << i + 1 << ":" << RESET << std::endl;
-        std::cout << "   Host: " << server.host << std::endl;
-        std::cout << "   Port: " << server.port << std::endl;
-        std::cout << "   Server name: " << server.server_name << std::endl;
-        std::cout << "   Root: " << server.root << std::endl;
-        std::cout << "   Index: " << server.index << std::endl;
-        std::cout << "   Max body size: " << server.client_max_body_size << " bytes" << std::endl;
+        logFile << "\n  Server " << i + 1 << ":" << std::endl;
+        logFile << "   Host: " << server.host << std::endl;
+        logFile << "   Port: " << server.port << std::endl;
+        logFile << "   Server name: " << server.server_name << std::endl;
+        logFile << "   Root: " << server.root << std::endl;
+        logFile << "   Index: " << server.index << std::endl;
+        logFile << "   Max body size: " << server.client_max_body_size << " bytes" << std::endl;
         
         if (!server.error_pages.empty()) {
-            std::cout << "  Error pages:" << std::endl;
+            logFile << "  Error pages:" << std::endl;
             for (std::map<int, std::string>::const_iterator it = server.error_pages.begin();
                  it != server.error_pages.end(); ++it) {
-                std::cout << "    " << it->first << " -> " << it->second << std::endl;
+                logFile << "    " << it->first << " -> " << it->second << std::endl;
             }
         }
         
         std::map<std::string, std::vector<LocationConfig> >::const_iterator loc_it = 
             _locations.find(server.server_name);
         if (loc_it != _locations.end() && !loc_it->second.empty()) {
-            std::cout << BLUE << "  Locations:" << RESET << std::endl;
+            logFile << "  Locations:" << std::endl;
             
             for (size_t j = 0; j < loc_it->second.size(); ++j) {
                 const LocationConfig& location = loc_it->second[j];
-                std::cout << BLUE << "      " << location.path << ":" << RESET << std::endl;
+                logFile << "      " << location.path << ":" << std::endl;
                 
                 if (!location.allowed_methods.empty()) {
-                    std::cout << "      Methods: ";
+                    logFile << "      Methods: ";
                     for (size_t k = 0; k < location.allowed_methods.size(); ++k) {
-                        std::cout << location.allowed_methods[k];
+                        logFile << location.allowed_methods[k];
                         if (k < location.allowed_methods.size() - 1)
-                            std::cout << ", ";
+                            logFile << ", ";
                     }
-                    std::cout << std::endl;
+                    logFile << std::endl;
                 }
                 
                 if (!location.upload_path.empty())
-                    std::cout << "      Upload: " << location.upload_path << std::endl;
+                    logFile << "      Upload: " << location.upload_path << std::endl;
                 
                 if (!location.cgi_extensions.empty()) {
-                    std::cout << "      CGI extensions: ";
+                    logFile << "      CGI extensions: ";
                     for (size_t k = 0; k < location.cgi_extensions.size(); ++k) {
-                        std::cout << location.cgi_extensions[k];
-                        if (k < location.cgi_extensions.size() - 1) std::cout << ", ";
+                        logFile << location.cgi_extensions[k];
+                        if (k < location.cgi_extensions.size() - 1) logFile << ", ";
                     }
-                    std::cout << std::endl;
+                    logFile << std::endl;
                 }
                 
                 if (!location.cgi_path.empty())
-                    std::cout << "      CGI path: " << location.cgi_path << std::endl;
+                    logFile << "      CGI path: " << location.cgi_path << std::endl;
                 
                 if (!location.root.empty())
-                    std::cout << "      Root: " << location.root << std::endl;
+                    logFile << "      Root: " << location.root << std::endl;
                 
                 if (!location.index.empty())
-                    std::cout << "      Index: " << location.index << std::endl;
+                    logFile << "      Index: " << location.index << std::endl;
 
                 if (location.client_max_body_size > 0)
-                    std::cout << "      Max body size: " << location.client_max_body_size << " bytes" << std::endl;
+                    logFile << "      Max body size: " << location.client_max_body_size << " bytes" << std::endl;
                 
-                std::cout << "      Autoindex: " << (location.autoindex ? "ON" : "OFF") << std::endl;
+                logFile << "      Autoindex: " << (location.autoindex ? "ON" : "OFF") << std::endl;
                 
                 if (location.redirect_code > 0) 
-                    std::cout << "      Redirect: " << location.redirect_code << " -> " << location.redirect_url << std::endl;
+                    logFile << "      Redirect: " << location.redirect_code << " -> " << location.redirect_url << std::endl;
             }
         }
     }
     
-    std::cout << CYAN << "\n=== End Configuration ===" << RESET << std::endl;
+    logFile << "\n=== End Configuration ===" << std::endl;
+    logFile.close();
+    
+    std::cout << GREEN << "Configuration written to logConfig file" << RESET << std::endl;
 }
