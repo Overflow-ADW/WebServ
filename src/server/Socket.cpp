@@ -1,13 +1,11 @@
 #include "Socket.hpp"
 
 Socket::Socket(int port, const std::string& host) : _port(port), _host(host), _is_listening(false) {
-    // Créer le socket
     _fd = socket(AF_INET, SOCK_STREAM, 0);
     if (_fd < 0) {
         throw std::runtime_error("Failed to create socket");
     }
     
-    // Configuration de l'adresse
     _address.sin_family = AF_INET;
     _address.sin_port = htons(_port);
     
@@ -20,11 +18,9 @@ Socket::Socket(int port, const std::string& host) : _port(port), _host(host), _i
         }
     }
     
-    // Options du socket
     setReuseAddr();
     setNonBlocking();
     
-    // Bind et listen
     bind();
     listen();
 }

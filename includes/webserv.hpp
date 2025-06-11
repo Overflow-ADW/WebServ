@@ -29,13 +29,8 @@
 #include <cctype>      // Pour isspace, tolower, toupper
 #include <cstdio>      // Pour sprintf
 
-// Defines and constants
 #define MAX_CONNECTIONS 1024
-#define BUFFER_SIZE 8192
-#define DEFAULT_PORT 8080
-#define DEFAULT_HOST "127.0.0.1"
 
-// Colors for debug output
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"
 #define YELLOW  "\033[33m"
@@ -44,11 +39,15 @@
 #define CYAN    "\033[36m"
 #define RESET   "\033[0m"
 
-// Forward declarations
 class Server;
 class ConfigParser;
 class HttpRequest;
 class HttpResponse;
 class Socket;
+class Cgi;
+class FileUploadHandler;
+class ResponseHandler;
+class Utils;
+
 
 #endif

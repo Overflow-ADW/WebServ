@@ -22,6 +22,9 @@ SRCS		= $(SRC_DIR)/main.cpp \
 			  $(SRC_DIR)/server/Socket.cpp \
 			  $(SRC_DIR)/http/HttpRequest.cpp \
 			  $(SRC_DIR)/http/HttpResponse.cpp \
+			  $(SRC_DIR)/cgi/Cgi.cpp \
+			  $(SRC_DIR)/fileupload/FileUploadHandler.cpp \
+			  $(SRC_DIR)/response/ResponseHandler.cpp \
 			  $(SRC_DIR)/utils/Utils.cpp
 
 # Object files

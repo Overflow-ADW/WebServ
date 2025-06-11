@@ -16,12 +16,10 @@ public:
     HttpRequest();
     ~HttpRequest();
     
-    // Parsing
     bool parseRequest(const std::string& raw_request);
     void parseRequestLine(const std::string& line);
     void parseHeader(const std::string& line);
     
-    // Getters
     const std::string& getMethod() const;
     const std::string& getPath() const;
     const std::string& getVersion() const;
@@ -30,12 +28,10 @@ public:
     const std::map<std::string, std::string>& getHeaders() const;
     bool isComplete() const;
     
-    // HTTP specific getters
     size_t getContentLength() const;
     std::string getHost() const;
     std::string getConnection() const;
     
-    // Utils
     void clear();
     void print() const;
     

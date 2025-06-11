@@ -36,7 +36,7 @@ class ConfigParser {
 private:
     std::string _config_file;
     std::vector<ServerConfig> _servers;
-    std::map<std::string, std::vector<LocationConfig> > _locations; // key = server_name
+    std::map<std::string, std::vector<LocationConfig> > _locations;
     
     void parseFile();
     void parseServerBlock(std::ifstream& file);
