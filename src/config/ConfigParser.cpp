@@ -24,7 +24,7 @@ void ConfigParser::parseFile() {
         }
         
         if (line.find("server") != std::string::npos && line.find("{") != std::string::npos) {
-            parseServerBlock(file, line);
+            parseServerBlock(file);
         }
     }
     
@@ -36,8 +36,7 @@ void ConfigParser::parseFile() {
               << _servers.size() << " server(s)" << RESET << std::endl;
 }
 
-void ConfigParser::parseServerBlock(std::ifstream& file, std::string& line) {
-    (void)line;
+void ConfigParser::parseServerBlock(std::ifstream& file) {
     ServerConfig server_config;
     std::string current_line;
     

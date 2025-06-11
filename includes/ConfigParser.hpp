@@ -39,7 +39,7 @@ private:
     std::map<std::string, std::vector<LocationConfig> > _locations; // key = server_name
     
     void parseFile();
-    void parseServerBlock(std::ifstream& file, std::string& line);
+    void parseServerBlock(std::ifstream& file);
     void parseLocationBlock(std::ifstream& file, std::string& line, const std::string& server_name);
     std::vector<std::string> split(const std::string& str, char delimiter);
     void trim(std::string& str);
@@ -50,7 +50,7 @@ public:
     
     const std::vector<ServerConfig>& getServers() const;
     const std::vector<LocationConfig>& getLocations(const std::string& server_name) const;
-    void printConfig() const; // Pour debug
+    void printConfig() const;
 };
 
 #endif
