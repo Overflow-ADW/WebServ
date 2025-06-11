@@ -41,21 +41,21 @@ NC			= \033[0m # No Color
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	@echo "$(BLUE)Linking $(NAME)...$(NC)"
+	@echo -e "$(BLUE)Linking $(NAME)...$(NC)"
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
-	@echo "$(GREEN)✅ $(NAME) compiled successfully!$(NC)"
+	@echo -e "$(GREEN)✅ $(NAME) compiled successfully!$(NC)"
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
+	@echo -e "$(YELLOW)Compiling $<...$(NC)"
 	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	@echo "$(RED)Cleaning object files...$(NC)"
+	@echo -e "$(RED)Cleaning object files...$(NC)"
 	@rm -rf $(OBJ_DIR)
 
 fclean: clean
-	@echo "$(RED)Cleaning $(NAME)...$(NC)"
+	@echo -e "$(RED)Cleaning $(NAME)...$(NC)"
 	@rm -f $(NAME)
 
 re: fclean all
@@ -64,7 +64,7 @@ debug: fclean
 	@$(MAKE) DEBUG=1
 
 test: $(NAME)
-	@echo "$(BLUE)Running tests...$(NC)"
+	@echo -e "$(BLUE)Running tests...$(NC)"
 	@./$(NAME) configs/default.conf
 
 .PHONY: all clean fclean re debug test
