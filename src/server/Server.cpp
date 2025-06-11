@@ -96,6 +96,24 @@ void Server::run() {
         }
         
         if (activity == 0) {
+            // Vérification des timeouts pour les connexions inactives
+            time_t current_time = time(NULL);
+            std::vector<int> timed_out_clients;
+            
+            for (std::map<int, time_t>::iterator it = _client_timestamps.begin(); 
+                 it != _client_timestamps.end(); ++it) {
+                if (current_time - it->second > 30) {
+                    timed_out_clients.push_back(it->first);
+                }
+            }
+            
+            for (size_t i = 0; i < timed_out_clients.size(); ++i) {
+                int client_fd = timed_out_clients[i];
+                std::cout << YELLOW << "Client " << client_fd << " timed out - closing connection" << RESET << std::endl;
+                _response_handler.sendErrorResponse(client_fd, 408, "Request Timeout");
+                closeConnection(client_fd);
+            }
+            
             continue; 
         }
         
@@ -134,6 +152,7 @@ void Server::handleNewConnection(Socket& listening_socket) {
         if (client_fd > 0) {
             Socket* client_socket = new Socket(client_fd);
             _client_sockets[client_fd] = client_socket;
+            _client_timestamps[client_fd] = time(NULL); // Enregistrer le timestamp de connexion
             
             std::cout << CYAN << "New connection accepted on fd " << client_fd << RESET << std::endl;
         }
@@ -144,6 +163,18 @@ void Server::handleNewConnection(Socket& listening_socket) {
 
 void Server::handleClientRequest(int client_fd) {
     std::cout << BLUE << "Handling request from client " << client_fd << RESET << std::endl;
+    
+    // Vérification du timeout (408 Request Timeout) - 30 secondes
+    time_t current_time = time(NULL);
+    if (_client_timestamps.find(client_fd) != _client_timestamps.end()) {
+        time_t client_start_time = _client_timestamps[client_fd];
+        if (current_time - client_start_time > 30) {
+            std::cerr << RED << "Client " << client_fd << " timeout exceeded (30s)" << RESET << std::endl;
+            _response_handler.sendErrorResponse(client_fd, 408, "Request Timeout");
+            closeConnection(client_fd);
+            return;
+        }
+    }
     
     std::string raw_request;
     if (_partial_requests.find(client_fd) != _partial_requests.end()) {
@@ -170,11 +201,8 @@ void Server::handleClientRequest(int client_fd) {
     
     size_t headers_end_pos = raw_request.find("\r\n\r\n");
     if (headers_end_pos == std::string::npos) {
-        headers_end_pos = raw_request.find("\n\n");
-        if (headers_end_pos == std::string::npos) {
-            _partial_requests[client_fd] = raw_request;
-            return;
-        }
+        _partial_requests[client_fd] = raw_request;
+        return;
     }
     
     ssize_t content_length = -1;
@@ -197,8 +225,7 @@ void Server::handleClientRequest(int client_fd) {
     }
     
     if (content_length > 0) {
-        size_t headers_end_marker_len = (raw_request.find("\r\n\r\n") != std::string::npos) ? 4 : 2;
-        size_t expected_total_length = headers_end_pos + headers_end_marker_len + content_length;
+        size_t expected_total_length = headers_end_pos + 4 + content_length; // Always CRLF format
         
         if (raw_request.length() < expected_total_length) {
             _partial_requests[client_fd] = raw_request;
@@ -213,11 +240,8 @@ void Server::handleClientRequest(int client_fd) {
     
     std::cout << CYAN << "Raw request (" << raw_request.length() << " bytes):" << RESET << std::endl;
     size_t body_start = raw_request.find("\r\n\r\n");
-    if (body_start == std::string::npos) {
-        body_start = raw_request.find("\n\n");
-        if (body_start != std::string::npos) body_start += 2;
-    } else {
-        body_start += 4;
+    if (body_start != std::string::npos) {
+        body_start += 4; // Always CRLF format
     }
     
     if (body_start != std::string::npos && body_start < raw_request.length()) {
@@ -231,6 +255,21 @@ void Server::handleClientRequest(int client_fd) {
     if (request.parseRequest(raw_request)) {
         std::cout << GREEN << "HTTP request parsed successfully" << RESET << std::endl;
         request.print();
+        
+        // Validation de la longueur de l'URI (414 URI Too Long)
+        if (request.getPath().length() > 2048) {
+            std::cerr << RED << "URI too long: " << request.getPath().length() << " characters" << RESET << std::endl;
+            _response_handler.sendErrorResponse(client_fd, 414, "URI Too Long");
+            return;
+        }
+        
+        // Validation de la méthode HTTP (501 Not Implemented) 
+        const std::string& method = request.getMethod();
+        if (method != "GET" && method != "POST" && method != "DELETE") {
+            std::cerr << RED << "Method not implemented: " << method << RESET << std::endl;
+            _response_handler.sendErrorResponse(client_fd, 501, "Not Implemented");
+            return;
+        }
         
         processHttpRequest(client_fd, request);
     } else {
@@ -252,6 +291,7 @@ void Server::closeConnection(int client_fd) {
     
     _partial_requests.erase(client_fd);
     _expected_lengths.erase(client_fd);
+    _client_timestamps.erase(client_fd);
 }
 
 void Server::stop() {
@@ -305,7 +345,30 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
     
     std::cout << CYAN << "Using location: " << location_config->path << RESET << std::endl;
     
+    // Validation de la taille du corps (413 Payload Too Large)
+    const std::string& body = request.getBody();
+    size_t max_body_size = location_config->client_max_body_size;
+    if (max_body_size == 0) {
+        max_body_size = server_config->client_max_body_size;
+    }
+    
+    if (body.length() > max_body_size) {
+        std::cerr << RED << "Request body too large: " << body.length() 
+                  << " bytes (limit: " << max_body_size << " bytes)" << RESET << std::endl;
+        _response_handler.sendErrorResponse(client_fd, 413, "Payload Too Large");
+        return;
+    }
+    
     if (!location_config->redirect_url.empty()) {
+        // Validation du code de redirection (3xx seulement)
+        int redirect_code = location_config->redirect_code;
+        if (redirect_code < 300 || redirect_code >= 400) {
+            std::cerr << RED << "Invalid redirect code: " << redirect_code 
+                      << " (must be 3xx)" << RESET << std::endl;
+            _response_handler.sendErrorResponse(client_fd, 500, "Internal Server Error");
+            return;
+        }
+        
         HttpResponse response;
         response.setStatus(location_config->redirect_code, HttpResponse::getStatusText(location_config->redirect_code));
         response.setHeader("Location", location_config->redirect_url);

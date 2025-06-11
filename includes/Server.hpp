@@ -24,6 +24,7 @@ private:
     
     std::map<int, std::string> _partial_requests;
     std::map<int, size_t> _expected_lengths;
+    std::map<int, time_t> _client_timestamps;
     
     Cgi _cgi;
     FileUploadHandler _upload_handler;

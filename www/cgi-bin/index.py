@@ -59,24 +59,6 @@ html_content = """<!DOCTYPE html>
                 </p>
                 <a href="/cgi-bin/quotes.py" class="nav-button">EXECUTE</a>
             </div>
-            <div class="feature-card">
-                <h3 class="feature-title">SYSINFO.PY</h3>
-                <p class="feature-description">
-                    Complete system information dashboard displaying real-time
-                    server data, OS info, memory usage and process monitoring
-                    with detailed system metrics.
-                </p>
-                <a href="/cgi-bin/sysinfo.py" class="nav-button">EXECUTE</a>
-            </div>
-            <div class="feature-card">
-                <h3 class="feature-title">SHELL SCRIPTS</h3>
-                <p class="feature-description">
-                    Shell script execution environment supporting bash scripts
-                    with secure parameter passing and environment variable
-                    handling for system automation tasks.
-                </p>
-                <a href="/cgi-bin/test_basic.sh" class="nav-button">EXECUTE</a>
-            </div>
         </section>
 
         <section class="nav-section">

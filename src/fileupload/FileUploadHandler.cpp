@@ -89,10 +89,7 @@ bool FileUploadHandler::parseMultipartData(const std::string& body, const std::s
         
         size_t headers_end = body.find("\r\n\r\n", pos);
         if (headers_end == std::string::npos) {
-            headers_end = body.find("\n\n", pos);
-            if (headers_end == std::string::npos) {
-                continue;
-            }
+            continue;
         }
         
         std::string headers = body.substr(pos, headers_end - pos);

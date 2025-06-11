@@ -12,12 +12,8 @@ bool HttpRequest::parseRequest(const std::string& raw_request) {
     }
     
     size_t headers_end = raw_request.find("\r\n\r\n");
-    bool crlf_format = true;
     if (headers_end == std::string::npos) {
-        headers_end = raw_request.find("\n\n");
-        crlf_format = false;
-        if (headers_end == std::string::npos)
-            headers_end = raw_request.length();
+        headers_end = raw_request.length();
     }
     
     std::string headers_part = raw_request.substr(0, headers_end);
@@ -44,7 +40,7 @@ bool HttpRequest::parseRequest(const std::string& raw_request) {
     }
     
     if (headers_end < raw_request.length()) {
-        size_t body_start = headers_end + (crlf_format ? 4 : 2);
+        size_t body_start = headers_end + 4; // Always CRLF format (\r\n\r\n)
         if (body_start < raw_request.length()) {
             _body = raw_request.substr(body_start);
         }

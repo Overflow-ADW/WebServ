@@ -109,30 +109,22 @@ void ResponseHandler::sendSimpleResponse(int client_fd, const HttpRequest& reque
 }
 
 void ResponseHandler::sendErrorResponse(int client_fd, int status_code, const std::string& message) {
-    std::string status_text;
-    switch (status_code) {
-        case 400: status_text = "Bad Request"; break;
-        case 404: status_text = "Not Found"; break;
-        case 405: status_text = "Method Not Allowed"; break;
-        case 500: status_text = "Internal Server Error"; break;
-        default: status_text = "Error"; break;
-    }
+    // ✅ Utiliser la fonction complète HttpResponse::getStatusText() au lieu de dupliquer
+    std::string status_text = HttpResponse::getStatusText(status_code);
     
-    std::string response;
-    response = "HTTP/1.1 " + std::string(1, '0' + status_code / 100) + 
-               std::string(1, '0' + (status_code / 10) % 10) + 
-               std::string(1, '0' + status_code % 10) + " " + status_text + "\r\n";
-    response += "Content-Type: text/html\r\n";
-    response += "Connection: close\r\n";
-    response += "\r\n";
-    response += "<html><head><title>" + status_text + "</title></head>";
-    response += "<body><h1>" + std::string(1, '0' + status_code / 100) + 
-                std::string(1, '0' + (status_code / 10) % 10) + 
-                std::string(1, '0' + status_code % 10) + " " + status_text + "</h1>";
-    response += "<p>" + message + "</p>";
-    response += "</body></html>";
+    std::ostringstream response;
+    response << "HTTP/1.1 " << status_code << " " << status_text << "\r\n";
+    response << "Content-Type: text/html\r\n";
+    response << "Connection: close\r\n";
+    response << "\r\n";
+    response << "<html><head><title>" << status_code << " " << status_text << "</title></head>";
+    response << "<body style='font-family: Arial, sans-serif; text-align: center; padding: 50px;'>";
+    response << "<h1 style='color: #e74c3c;'>" << status_code << " " << status_text << "</h1>";
+    response << "<p>" << message << "</p>";
+    response << "<hr><p><em>Webserv/1.0</em></p>";
+    response << "</body></html>";
     
-    queueResponse(client_fd, response);
+    queueResponse(client_fd, response.str());
 }
 
 void ResponseHandler::cleanupClient(int client_fd) {

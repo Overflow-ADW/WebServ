@@ -3,6 +3,7 @@
 
 #include "webserv.hpp"
 #include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 
 class ResponseHandler {
 private:
