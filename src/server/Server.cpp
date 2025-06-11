@@ -141,11 +141,9 @@ void Server::handleNewConnection(Socket& listening_socket) {
             _client_sockets[client_fd] = client_socket;
             _client_timestamps[client_fd] = time(NULL);
             
-            // Store which listening socket this client came from
             _client_listening_ports[client_fd] = listening_socket.getPort();
             
-            std::cout << CYAN << "New connection accepted on fd " << client_fd 
-                      << " (listening port: " << listening_socket.getPort() << ")" << RESET << std::endl;
+            std::cout << CYAN << "New connection accepted on fd " << client_fd << " (listening port: " << listening_socket.getPort() << ")" << RESET << std::endl;
         }
     } catch (const std::exception& e) {
         std::cerr << RED << "Error accepting connection: " << e.what() << RESET << std::endl;
@@ -279,7 +277,7 @@ void Server::closeConnection(int client_fd) {
     _partial_requests.erase(client_fd);
     _expected_lengths.erase(client_fd);
     _client_timestamps.erase(client_fd);
-    _client_listening_ports.erase(client_fd);  // Clean up port mapping
+    _client_listening_ports.erase(client_fd);
 }
 
 void Server::stop() {
@@ -292,7 +290,6 @@ void Server::stop() {
     }
     _client_sockets.clear();
     
-    // Clear all client-related maps
     _partial_requests.clear();
     _expected_lengths.clear();
     _client_timestamps.clear();
@@ -316,27 +313,22 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
         host = host.substr(0, colon_pos);
     }
     
-    // If no port in Host header, use the port this connection came from
     if (request_port == -1) {
         std::map<int, int>::iterator port_it = _client_listening_ports.find(client_fd);
         if (port_it != _client_listening_ports.end()) {
             request_port = port_it->second;
-        } else {
-            // Fallback to 8080 only if we can't determine the port
+        } else
             request_port = 8080;
-        }
     }
     
     const ServerConfig* server_config = findServerConfig(host, request_port);
     if (!server_config) {
-        std::cerr << RED << "No server configuration found for host: " << host 
-                  << ":" << request_port << RESET << std::endl;
+        std::cerr << RED << "No server configuration found for host: " << host << ":" << request_port << RESET << std::endl;
         _response_handler.sendErrorResponse(client_fd, 500, "Internal Server Error");
         return;
     }
     
-    std::cout << CYAN << "Using server config: " << server_config->server_name 
-              << " (port " << server_config->port << ")" << RESET << std::endl;
+    std::cout << CYAN << "Using server config: " << server_config->server_name << " (port " << server_config->port << ")" << RESET << std::endl;
     
     const LocationConfig* location_config = findLocationConfig(*server_config, request.getPath());
     if (!location_config) {
@@ -353,8 +345,7 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
         max_body_size = server_config->client_max_body_size;
     
     if (body.length() > max_body_size) {
-        std::cerr << RED << "Request body too large: " << body.length() 
-                  << " bytes (limit: " << max_body_size << " bytes)" << RESET << std::endl;
+        std::cerr << RED << "Request body too large: " << body.length() << " bytes (limit: " << max_body_size << " bytes)" << RESET << std::endl;
         _response_handler.sendErrorResponse(client_fd, 413, "Payload Too Large");
         return;
     }
@@ -362,8 +353,7 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
     if (!location_config->redirect_url.empty()) {
         int redirect_code = location_config->redirect_code;
         if (redirect_code < 300 || redirect_code >= 400) {
-            std::cerr << RED << "Invalid redirect code: " << redirect_code 
-                      << " (must be 3xx)" << RESET << std::endl;
+            std::cerr << RED << "Invalid redirect code: " << redirect_code << " (must be 3xx)" << RESET << std::endl;
             _response_handler.sendErrorResponse(client_fd, 500, "Internal Server Error");
             return;
         }
@@ -500,8 +490,7 @@ const LocationConfig* Server::findLocationConfig(const ServerConfig& server, con
     return best_match;
 }
 
-void Server::serveStaticFile(int client_fd, const HttpRequest& request, 
-                            const ServerConfig& server_config, const LocationConfig& location_config) {
+void Server::serveStaticFile(int client_fd, const HttpRequest& request, const ServerConfig& server_config, const LocationConfig& location_config) {
     std::string requested_path = request.getPath();
     
     size_t query_pos = requested_path.find('?');

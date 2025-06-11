@@ -12,8 +12,7 @@ struct ServerConfig {
     size_t client_max_body_size;
     std::map<int, std::string> error_pages;
     
-    ServerConfig() : port(8080), host("127.0.0.1"), server_name("localhost"), 
-                   root("./www"), index("index.html"), client_max_body_size(1000000) {}
+    ServerConfig() : port(8080), host("127.0.0.1"), server_name("localhost"), root("./www"), index("index.html"), client_max_body_size(1000000) {}
 };
 
 struct LocationConfig {

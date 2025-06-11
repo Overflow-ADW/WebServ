@@ -1,7 +1,6 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
-// Standard C++ includes (C++98 compatible)
 #include <iostream>
 #include <string>
 #include <vector>
@@ -11,8 +10,6 @@
 #include <fstream>
 #include <exception>
 #include <ctime>
-
-// System includes for networking
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/select.h>
@@ -22,12 +19,12 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
-#include <cstring>  // Pour strerror
-#include <sys/wait.h>  // Pour waitpid
-#include <cstdlib>     // Pour setenv
-#include <sys/stat.h>  // Pour stat et S_ISDIR
-#include <cctype>      // Pour isspace, tolower, toupper
-#include <cstdio>      // Pour sprintf
+#include <cstring>
+#include <sys/wait.h>
+#include <cstdlib>
+#include <sys/stat.h>
+#include <cctype>
+#include <cstdio>
 
 #define MAX_CONNECTIONS 1024
 

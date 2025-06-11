@@ -26,17 +26,13 @@ bool Cgi::isCgiRequest(const std::string& path, const LocationConfig& location) 
     return false;
 }
 
-bool Cgi::executeCgiRequest(const HttpRequest& request, 
-                           const ServerConfig& server_config, 
-                           const LocationConfig& location_config,
-                           HttpResponse& response) {
+bool Cgi::executeCgiRequest(const HttpRequest& request, const ServerConfig& server_config, const LocationConfig& location_config, HttpResponse& response) {
     std::string script_path = buildScriptPath(request.getPath(), server_config, location_config);
     
     std::cout << BLUE << "Executing CGI script: " << script_path << RESET << std::endl;
     std::cout << BLUE << "CGI interpreter: " << location_config.cgi_path << RESET << std::endl;
     
-    std::map<std::string, std::string> env_vars = buildCgiEnvironment(request, server_config, 
-                                                                      location_config, script_path);
+    std::map<std::string, std::string> env_vars = buildCgiEnvironment(request, server_config, location_config, script_path);
     
     bool success = response.executeCgi(script_path, location_config.cgi_path, env_vars, request.getBody());
     
@@ -48,9 +44,7 @@ bool Cgi::executeCgiRequest(const HttpRequest& request,
     return success;
 }
 
-std::string Cgi::buildScriptPath(const std::string& requested_path, 
-                                const ServerConfig& server_config, 
-                                const LocationConfig& location_config) {
+std::string Cgi::buildScriptPath(const std::string& requested_path, const ServerConfig& server_config, const LocationConfig& location_config) {
     std::string clean_path = requested_path;
     size_t query_pos = requested_path.find('?');
     if (query_pos != std::string::npos)
@@ -64,10 +58,7 @@ std::string Cgi::buildScriptPath(const std::string& requested_path,
     return script_path;
 }
 
-std::map<std::string, std::string> Cgi::buildCgiEnvironment(const HttpRequest& request, 
-                                                           const ServerConfig& server_config, 
-                                                           const LocationConfig& location_config,
-                                                           const std::string& script_path) {
+std::map<std::string, std::string> Cgi::buildCgiEnvironment(const HttpRequest& request, const ServerConfig& server_config, const LocationConfig& location_config,const std::string& script_path) {
     std::map<std::string, std::string> env_vars;
     
     (void)location_config;

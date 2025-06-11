@@ -114,27 +114,8 @@ const std::map<std::string, std::string>& HttpRequest::getHeaders() const {
     return _headers;
 }
 
-size_t HttpRequest::getContentLength() const {
-    std::string content_length = getHeader("content-length");
-    if (content_length.empty())
-        return 0;
-    
-    std::istringstream iss(content_length);
-    size_t length;
-    iss >> length;
-    return length;
-}
-
 std::string HttpRequest::getHost() const {
     return getHeader("host");
-}
-
-std::string HttpRequest::getConnection() const {
-    return getHeader("connection");
-}
-
-bool HttpRequest::isComplete() const {
-    return _is_complete;
 }
 
 void HttpRequest::clear() {

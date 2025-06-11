@@ -25,7 +25,7 @@ private:
     std::map<int, std::string> _partial_requests;
     std::map<int, size_t> _expected_lengths;
     std::map<int, time_t> _client_timestamps;
-    std::map<int, int> _client_listening_ports;  // Maps client_fd to listening port
+    std::map<int, int> _client_listening_ports;
     
     Cgi _cgi;
     FileUploadHandler _upload_handler;
@@ -40,8 +40,7 @@ private:
     
     const ServerConfig* findServerConfig(const std::string& host, int port) const;
     const LocationConfig* findLocationConfig(const ServerConfig& server, const std::string& path) const;
-    void serveStaticFile(int client_fd, const HttpRequest& request, 
-                        const ServerConfig& server_config, const LocationConfig& location_config);
+    void serveStaticFile(int client_fd, const HttpRequest& request, const ServerConfig& server_config, const LocationConfig& location_config);
     
 public:
     Server(const ConfigParser& config);

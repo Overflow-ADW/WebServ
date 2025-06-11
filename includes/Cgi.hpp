@@ -8,14 +8,8 @@
 
 class Cgi {
 private:
-    std::map<std::string, std::string> buildCgiEnvironment(const HttpRequest& request, 
-                                                           const ServerConfig& server_config, 
-                                                           const LocationConfig& location_config,
-                                                           const std::string& script_path);
-    
-    std::string buildScriptPath(const std::string& requested_path, 
-                               const ServerConfig& server_config, 
-                               const LocationConfig& location_config);
+    std::map<std::string, std::string> buildCgiEnvironment(const HttpRequest& request, const ServerConfig& server_config, const LocationConfig& location_config,const std::string& script_path); 
+    std::string buildScriptPath(const std::string& requested_path,  const ServerConfig& server_config,const LocationConfig& location_config);
 
 public:
     Cgi();
@@ -23,10 +17,7 @@ public:
     
     static bool isCgiRequest(const std::string& path, const LocationConfig& location);
     
-    bool executeCgiRequest(const HttpRequest& request, 
-                          const ServerConfig& server_config, 
-                          const LocationConfig& location_config,
-                          HttpResponse& response);
+    bool executeCgiRequest(const HttpRequest& request, const ServerConfig& server_config, const LocationConfig& location_config,HttpResponse& response);
 };
 
 #endif

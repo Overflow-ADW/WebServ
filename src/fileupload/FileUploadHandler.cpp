@@ -10,8 +10,7 @@ bool FileUploadHandler::isFileUpload(const HttpRequest& request, const LocationC
     return (request.getMethod() == "POST" && !location_config.upload_path.empty());
 }
 
-bool FileUploadHandler::handleFileUpload(const HttpRequest& request, const LocationConfig& location_config,
-                                        std::string& response_html) {
+bool FileUploadHandler::handleFileUpload(const HttpRequest& request, const LocationConfig& location_config, std::string& response_html) {
     try {
         std::string content_type = request.getHeader("content-type");
         if (content_type.find("multipart/form-data") == std::string::npos) {
@@ -129,8 +128,7 @@ bool FileUploadHandler::parseMultipartData(const std::string& body, const std::s
     return !uploaded_files.empty();
 }
 
-bool FileUploadHandler::saveUploadedFile(const std::string& filename, const std::string& content, 
-                                        const std::string& upload_path) {
+bool FileUploadHandler::saveUploadedFile(const std::string& filename, const std::string& content, const std::string& upload_path) {
     std::string file_path = upload_path + "/" + filename;
     
     std::ofstream file(file_path.c_str(), std::ios::binary);

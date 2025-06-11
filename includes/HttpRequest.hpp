@@ -26,11 +26,8 @@ public:
     const std::string& getHeader(const std::string& name) const;
     const std::string& getBody() const;
     const std::map<std::string, std::string>& getHeaders() const;
-    bool isComplete() const;
     
-    size_t getContentLength() const;
     std::string getHost() const;
-    std::string getConnection() const;
     
     void clear();
     void print() const;

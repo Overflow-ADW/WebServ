@@ -29,9 +29,7 @@ public:
     bool serveFile(const std::string& file_path);
     bool serveErrorPage(int error_code, const std::string& error_path = "");
     
-    bool executeCgi(const std::string& script_path, const std::string& cgi_path, 
-                   const std::map<std::string, std::string>& env_vars, 
-                   const std::string& request_body = "");
+    bool executeCgi(const std::string& script_path, const std::string& cgi_path, const std::map<std::string, std::string>& env_vars, const std::string& request_body = "");
     
     static std::string getStatusText(int code);
     static std::string getMimeType(const std::string& file_path);

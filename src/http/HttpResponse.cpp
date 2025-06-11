@@ -227,9 +227,7 @@ std::string HttpResponse::readFile(const std::string& path) {
     return content;
 }
 
-bool HttpResponse::executeCgi(const std::string& script_path, const std::string& cgi_path, 
-                             const std::map<std::string, std::string>& env_vars, 
-                             const std::string& request_body) {
+bool HttpResponse::executeCgi(const std::string& script_path, const std::string& cgi_path, const std::map<std::string, std::string>& env_vars, const std::string& request_body) {
     if (!fileExists(script_path)) {
         setStatus(404, "Not Found");
         setBody("<html><body><h1>404 Not Found</h1><p>CGI script not found</p></body></html>");
