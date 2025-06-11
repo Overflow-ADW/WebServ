@@ -7,13 +7,8 @@ OBJ_DIR		= obj
 
 # Compiler and flags
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -pedantic
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
 INCLUDES	= -I$(INC_DIR)
-
-# Debug flags
-ifdef DEBUG
-	CXXFLAGS += -g3 -fsanitize=address
-endif
 
 # Source files
 SRCS		= $(SRC_DIR)/main.cpp \
@@ -59,12 +54,5 @@ fclean: clean
 	@rm -f $(NAME)
 
 re: fclean all
-
-debug: fclean
-	@$(MAKE) DEBUG=1
-
-test: $(NAME)
-	@echo -e "$(BLUE)Running tests...$(NC)"
-	@./$(NAME) configs/default.conf
 
 .PHONY: all clean fclean re debug test
