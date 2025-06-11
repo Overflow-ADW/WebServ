@@ -3,29 +3,57 @@
   Server 1:
    Host: 127.0.0.1
    Port: 8080
-   Server name: example.test
+   Server name: localhost
    Root: ./www
    Index: index.html
-   Max body size: 1000000 bytes
+   Max body size: 50 bytes
+  Error pages:
+    404 -> /404.html
+    500 -> 502
   Locations:
       /:
       Methods: GET, POST
       Autoindex: OFF
-      /:
-      Methods: GET, POST, DELETE
-      Autoindex: ON
+      /upload:
+      Methods: POST
+      Upload: ./uploads
+      Autoindex: OFF
+      /cgi-bin:
+      Methods: GET, POST
+      CGI extensions: .py
+      CGI path: /usr/bin/python3
+      Autoindex: OFF
+      /redirect:
+      Methods: GET, POST
+      Autoindex: OFF
+      Redirect: 301 -> https://www.google.com
 
   Server 2:
    Host: 127.0.0.1
    Port: 8081
-   Server name: example.test
+   Server name: example.com
    Root: ./www_example
    Index: index.html
    Max body size: 1000000 bytes
   Locations:
       /:
-      Methods: GET, POST
-      Autoindex: OFF
+      Methods: GET, POST, DELETE
+      Autoindex: ON
+      /:
+      Methods: GET, POST, DELETE
+      Autoindex: ON
+
+  Server 3:
+   Host: 127.0.0.1
+   Port: 8082
+   Server name: example.com
+   Root: ./www_example
+   Index: index.html
+   Max body size: 1000000 bytes
+  Locations:
+      /:
+      Methods: GET, POST, DELETE
+      Autoindex: ON
       /:
       Methods: GET, POST, DELETE
       Autoindex: ON
