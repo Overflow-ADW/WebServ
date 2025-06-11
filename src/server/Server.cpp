@@ -340,13 +340,14 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
     std::cout << CYAN << "Using location: " << location_config->path << RESET << std::endl;
     
     const std::string& body = request.getBody();
-    std::cout << YELLOW << "Debug - Body size: " << body.length() << " bytes" << RESET << std::endl;
-    std::cout << YELLOW << "Debug - Max allowed: " << server_config->client_max_body_size << " bytes" << RESET << std::endl;
     
     if (body.length() > server_config->client_max_body_size) {
         std::cerr << RED << "Request body too large: " << body.length() 
                   << " bytes (limit: " << server_config->client_max_body_size << " bytes)" << RESET << std::endl;
         _response_handler.sendErrorResponse(client_fd, 413, "Payload Too Large");
+        
+        std::cout << YELLOW << "Closing connection due to payload too large" << RESET << std::endl;
+        closeConnection(client_fd);
         return;
     }
     

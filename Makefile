@@ -30,7 +30,7 @@ GREEN		= \033[0;32m
 RED			= \033[0;31m
 BLUE		= \033[0;34m
 YELLOW		= \033[0;33m
-NC			= \033[0m # No Color
+NC			= \033[0m
 
 # Rules
 all: $(NAME)
@@ -55,4 +55,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re test
+.PHONY: all clean fclean re
