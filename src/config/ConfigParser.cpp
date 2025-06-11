@@ -178,12 +178,6 @@ void ConfigParser::parseLocationBlock(std::ifstream& file, std::string& line, co
             location_config.index = tokens[1];
             std::cout << CYAN << "      Index: " << location_config.index << RESET << std::endl;
         }
-
-        else if (tokens[0] == "client_max_body_size" && tokens.size() >= 2) {
-            location_config.client_max_body_size = std::atoi(tokens[1].c_str());
-            std::cout << CYAN << "      Max body size: " << location_config.client_max_body_size << " bytes" << RESET << std::endl;
-        }
-
         else
             std::cout << YELLOW << "      Unknown location directive: " << tokens[0] << RESET << std::endl;
     }
@@ -292,10 +286,6 @@ void ConfigParser::printConfig() const {
                 
                 if (!location.index.empty())
                     logFile << "      Index: " << location.index << std::endl;
-
-                if (location.client_max_body_size > 0)
-                    logFile << "      Max body size: " << location.client_max_body_size << " bytes" << std::endl;
-                
                 logFile << "      Autoindex: " << (location.autoindex ? "ON" : "OFF") << std::endl;
                 
                 if (location.redirect_code > 0) 

@@ -23,12 +23,11 @@ struct LocationConfig {
     std::string cgi_path;
     std::string root;
     std::string index;
-    size_t client_max_body_size;
     bool autoindex;
     std::string redirect_url;
     int redirect_code;
     
-    LocationConfig() : client_max_body_size(0), autoindex(false), redirect_code(0) {}
+    LocationConfig() : autoindex(false), redirect_code(0) {}
 };
 
 class ConfigParser {

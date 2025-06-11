@@ -68,13 +68,11 @@ void HttpResponse::clear() {
 
 std::string HttpResponse::getStatusText(int code) {
     switch (code) {
-        // 2xx Success
         case 200: return "OK";
         case 201: return "Created";
         case 202: return "Accepted";
         case 204: return "No Content";
         
-        // 3xx Redirection
         case 300: return "Multiple Choices";
         case 301: return "Moved Permanently";
         case 302: return "Found";
@@ -83,7 +81,6 @@ std::string HttpResponse::getStatusText(int code) {
         case 307: return "Temporary Redirect";
         case 308: return "Permanent Redirect";
         
-        // 4xx Client Errors
         case 400: return "Bad Request";
         case 401: return "Unauthorized";
         case 403: return "Forbidden";
@@ -108,7 +105,6 @@ std::string HttpResponse::getStatusText(int code) {
         case 429: return "Too Many Requests";
         case 431: return "Request Header Fields Too Large";
         
-        // 5xx Server Errors
         case 500: return "Internal Server Error";
         case 501: return "Not Implemented";
         case 502: return "Bad Gateway";

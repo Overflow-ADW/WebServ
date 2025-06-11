@@ -340,23 +340,17 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
     std::cout << CYAN << "Using location: " << location_config->path << RESET << std::endl;
     
     const std::string& body = request.getBody();
-    size_t max_body_size = location_config->client_max_body_size;
-    if (max_body_size == 0)
-        max_body_size = server_config->client_max_body_size;
+    std::cout << YELLOW << "Debug - Body size: " << body.length() << " bytes" << RESET << std::endl;
+    std::cout << YELLOW << "Debug - Max allowed: " << server_config->client_max_body_size << " bytes" << RESET << std::endl;
     
-    if (body.length() > max_body_size) {
-        std::cerr << RED << "Request body too large: " << body.length() << " bytes (limit: " << max_body_size << " bytes)" << RESET << std::endl;
+    if (body.length() > server_config->client_max_body_size) {
+        std::cerr << RED << "Request body too large: " << body.length() 
+                  << " bytes (limit: " << server_config->client_max_body_size << " bytes)" << RESET << std::endl;
         _response_handler.sendErrorResponse(client_fd, 413, "Payload Too Large");
         return;
     }
     
-    if (!location_config->redirect_url.empty()) {
-        int redirect_code = location_config->redirect_code;
-        if (redirect_code < 300 || redirect_code >= 400) {
-            std::cerr << RED << "Invalid redirect code: " << redirect_code << " (must be 3xx)" << RESET << std::endl;
-            _response_handler.sendErrorResponse(client_fd, 500, "Internal Server Error");
-            return;
-        }
+    if (!location_config->redirect_url.empty() && location_config->redirect_code >= 300 && location_config->redirect_code < 400) {
         
         HttpResponse response;
         response.setStatus(location_config->redirect_code, HttpResponse::getStatusText(location_config->redirect_code));
