@@ -33,9 +33,8 @@ const std::string& HttpResponse::getStatusMessage() const {
 const std::string& HttpResponse::getHeader(const std::string& name) const {
     static std::string empty;
     std::map<std::string, std::string>::const_iterator it = _headers.find(name);
-    if (it != _headers.end()) {
+    if (it != _headers.end())
         return it->second;
-    }
     return empty;
 }
 
@@ -127,14 +126,12 @@ std::string HttpResponse::getStatusText(int code) {
 }
 
 bool HttpResponse::serveFile(const std::string& file_path) {
-    if (!fileExists(file_path)) {
+    if (!fileExists(file_path))
         return false;
-    }
     
     std::string content = readFile(file_path);
-    if (content.empty()) {
+    if (content.empty())
         return false;
-    }
     
     setStatus(200, "OK");
     setHeader("Content-Type", getMimeType(file_path));
@@ -152,9 +149,8 @@ bool HttpResponse::serveErrorPage(int error_code, const std::string& error_path)
     
     std::string body;
     
-    if (!error_path.empty() && fileExists(error_path)) {
+    if (!error_path.empty() && fileExists(error_path))
         body = readFile(error_path);
-    }
     
     if (body.empty()) {
         body = "<html><head><title>" + status_text + "</title></head>";
@@ -173,29 +169,40 @@ bool HttpResponse::serveErrorPage(int error_code, const std::string& error_path)
 
 std::string HttpResponse::getMimeType(const std::string& file_path) {
     size_t dot_pos = file_path.find_last_of('.');
-    if (dot_pos == std::string::npos) {
+    if (dot_pos == std::string::npos)
         return "application/octet-stream";
-    }
     
     std::string ext = file_path.substr(dot_pos);
     
-    for (size_t i = 0; i < ext.length(); ++i) {
+    for (size_t i = 0; i < ext.length(); ++i)
         ext[i] = std::tolower(ext[i]);
-    }
     
-    if (ext == ".html" || ext == ".htm") return "text/html";
-    if (ext == ".css") return "text/css";
-    if (ext == ".js") return "application/javascript";
-    if (ext == ".json") return "application/json";
-    if (ext == ".xml") return "application/xml";
-    if (ext == ".txt") return "text/plain";
-    if (ext == ".png") return "image/png";
-    if (ext == ".jpg" || ext == ".jpeg") return "image/jpeg";
-    if (ext == ".gif") return "image/gif";
-    if (ext == ".svg") return "image/svg+xml";
-    if (ext == ".ico") return "image/x-icon";
-    if (ext == ".pdf") return "application/pdf";
-    if (ext == ".zip") return "application/zip";
+    if (ext == ".html" || ext == ".htm") 
+        return "text/html";
+    if (ext == ".css") 
+        return "text/css";
+    if (ext == ".js") 
+        return "application/javascript";
+    if (ext == ".json") 
+        return "application/json";
+    if (ext == ".xml") 
+        return "application/xml";
+    if (ext == ".txt") 
+        return "text/plain";
+    if (ext == ".png") 
+        return "image/png";
+    if (ext == ".jpg" || ext == ".jpeg") 
+        return "image/jpeg";
+    if (ext == ".gif") 
+        return "image/gif";
+    if (ext == ".svg") 
+        return "image/svg+xml";
+    if (ext == ".ico") 
+        return "image/x-icon";
+    if (ext == ".pdf") 
+        return "application/pdf";
+    if (ext == ".zip") 
+        return "application/zip";
     
     return "application/octet-stream";
 }
@@ -207,9 +214,8 @@ bool HttpResponse::fileExists(const std::string& path) {
 
 std::string HttpResponse::readFile(const std::string& path) {
     std::ifstream file(path.c_str(), std::ios::binary);
-    if (!file.is_open()) {
+    if (!file.is_open())
         return "";
-    }
     
     file.seekg(0, std::ios::end);
     size_t size = file.tellg();
@@ -269,7 +275,8 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
         execl(cgi_path.c_str(), cgi_path.c_str(), script_path.c_str(), (char*)NULL);
         
         exit(1);
-    } else {
+    }
+    else {
         close(pipe_in[0]);
         close(pipe_out[1]);
         
@@ -282,10 +289,8 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
                 setBody("<html><body><h1>500 Internal Server Error</h1><p>Failed to send data to CGI script</p></body></html>");
                 return false;
             }
-            if ((size_t)bytes_written != request_body.length()) {
-                std::cerr << "Warning: CGI write was partial (" << bytes_written 
-                          << "/" << request_body.length() << " bytes)" << std::endl;
-            }
+            if ((size_t)bytes_written != request_body.length())
+                std::cerr << "Warning: CGI write was partial (" << bytes_written << "/" << request_body.length() << " bytes)" << std::endl;
         }
         close(pipe_in[1]);
         
@@ -298,9 +303,8 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
             cgi_output += buffer;
         }
         
-        if (bytes_read < 0) {
+        if (bytes_read < 0)
             std::cerr << "Warning: CGI read error encountered (may be normal if CGI closed pipe)" << std::endl;
-        }
         
         close(pipe_out[0]);
         
@@ -334,19 +338,18 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
                         }
                         
                         setHeader(name, value);
-                        if (name == "Content-Type") {
+                        if (name == "Content-Type")
                             content_type_set = true;
-                        }
                     }
                 }
                 
-                if (!content_type_set) {
+                if (!content_type_set)
                     setHeader("Content-Type", "text/html");
-                }
                 
                 setStatus(200, "OK");
                 setBody(body_part);
-            } else {
+            }
+            else {
                 setStatus(200, "OK");
                 setHeader("Content-Type", "text/html");
                 setBody(cgi_output);
@@ -354,7 +357,8 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
             
             setHeader("Connection", "close");
             return true;
-        } else {
+        }
+        else {
             setStatus(500, "Internal Server Error");
             setHeader("Content-Type", "text/html");
             setBody("<html><body><h1>500 Internal Server Error</h1><p>CGI execution failed</p></body></html>");

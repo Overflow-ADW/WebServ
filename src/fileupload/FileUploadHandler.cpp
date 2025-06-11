@@ -43,9 +43,8 @@ bool FileUploadHandler::handleFileUpload(const HttpRequest& request, const Locat
         }
         
         response_html = "<html><body><h1>Upload Successful</h1><p>Files uploaded:</p><ul>";
-        for (size_t i = 0; i < uploaded_files.size(); ++i) {
+        for (size_t i = 0; i < uploaded_files.size(); ++i)
             response_html += "<li>" + uploaded_files[i] + "</li>";
-        }
         response_html += "</ul></body></html>";
         
         std::cout << GREEN << "Upload successful: " << uploaded_files.size() << " file(s)" << RESET << std::endl;
@@ -59,38 +58,35 @@ bool FileUploadHandler::handleFileUpload(const HttpRequest& request, const Locat
 
 std::string FileUploadHandler::extractBoundary(const std::string& content_type) {
     size_t boundary_pos = content_type.find("boundary=");
-    if (boundary_pos == std::string::npos) {
+    if (boundary_pos == std::string::npos)
         return "";
-    }
     
     std::string boundary = content_type.substr(boundary_pos + 9);
     
-    if (!boundary.empty() && boundary[0] == '"' && boundary[boundary.length() - 1] == '"') {
+    if (!boundary.empty() && boundary[0] == '"' && boundary[boundary.length() - 1] == '"')
         boundary = boundary.substr(1, boundary.length() - 2);
-    }
     
     return boundary;
 }
 
-bool FileUploadHandler::parseMultipartData(const std::string& body, const std::string& boundary, 
-                                          const std::string& upload_path, std::vector<std::string>& uploaded_files) {
+bool FileUploadHandler::parseMultipartData(const std::string& body, const std::string& boundary, const std::string& upload_path, std::vector<std::string>& uploaded_files) {
     std::string delimiter = "--" + boundary;
     
     size_t pos = 0;
     while ((pos = body.find(delimiter, pos)) != std::string::npos) {
         pos += delimiter.length();
         
-        if (body.substr(pos, 2) == "--") {
+        if (body.substr(pos, 2) == "--")
             break;
-        }
         
-        if (pos < body.length() && body[pos] == '\r') pos++;
-        if (pos < body.length() && body[pos] == '\n') pos++;
+        if (pos < body.length() && body[pos] == '\r') 
+            pos++;
+        if (pos < body.length() && body[pos] == '\n') 
+            pos++;
         
         size_t headers_end = body.find("\r\n\r\n", pos);
-        if (headers_end == std::string::npos) {
+        if (headers_end == std::string::npos)
             continue;
-        }
         
         std::string headers = body.substr(pos, headers_end - pos);
         
@@ -101,35 +97,30 @@ bool FileUploadHandler::parseMultipartData(const std::string& body, const std::s
             if (filename_pos != std::string::npos) {
                 filename_pos += 10;
                 size_t filename_end = headers.find("\"", filename_pos);
-                if (filename_end != std::string::npos) {
+                if (filename_end != std::string::npos)
                     filename = headers.substr(filename_pos, filename_end - filename_pos);
-                }
             }
         }
         
-        if (body.find("\r\n\r\n", pos) == headers_end) {
-            pos = headers_end + 4; 
-        } else {
+        if (body.find("\r\n\r\n", pos) == headers_end)
+            pos = headers_end + 4;
+        else
             pos = headers_end + 2;
-        }
         
         size_t content_end = body.find("\r\n--" + boundary, pos);
         if (content_end == std::string::npos) {
             content_end = body.find("\n--" + boundary, pos);
-            if (content_end == std::string::npos) {
+            if (content_end == std::string::npos)
                 break;
-            }
         }
         
         std::string file_content = body.substr(pos, content_end - pos);
         
         if (!filename.empty()) {
-            if (file_content.empty()) {
+            if (file_content.empty())
                 std::cout << YELLOW << "Warning: Empty file content for " << filename << RESET << std::endl;
-            }
-            if (saveUploadedFile(filename, file_content, upload_path)) {
+            if (saveUploadedFile(filename, file_content, upload_path))
                 uploaded_files.push_back(filename);
-            }
         }
         
         pos = content_end;

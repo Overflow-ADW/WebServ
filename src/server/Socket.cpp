@@ -2,16 +2,15 @@
 
 Socket::Socket(int port, const std::string& host) : _port(port), _host(host), _is_listening(false) {
     _fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (_fd < 0) {
+    if (_fd < 0)
         throw std::runtime_error("Failed to create socket");
-    }
     
     _address.sin_family = AF_INET;
     _address.sin_port = htons(_port);
     
-    if (_host == "localhost" || _host == "127.0.0.1") {
+    if (_host == "localhost" || _host == "127.0.0.1")
         _address.sin_addr.s_addr = INADDR_ANY;
-    } else {
+    else {
         if (inet_pton(AF_INET, _host.c_str(), &_address.sin_addr) <= 0) {
             close(_fd);
             throw std::runtime_error("Invalid host address: " + _host);
@@ -30,9 +29,8 @@ Socket::Socket(int existing_fd) : _fd(existing_fd), _port(0), _host(""), _is_lis
 }
 
 Socket::~Socket() {
-    if (_fd >= 0) {
+    if (_fd >= 0)
         close(_fd);
-    }
 }
 
 void Socket::bind() {
@@ -58,9 +56,8 @@ int Socket::acceptConnection() {
     
     int client_fd = accept(_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
             return -1;
-        }
         throw std::runtime_error("Failed to accept connection");
     }
     
@@ -85,13 +82,11 @@ bool Socket::isListening() const {
 
 void Socket::setNonBlocking() {
     int flags = fcntl(_fd, F_GETFL, 0);
-    if (flags < 0) {
+    if (flags < 0)
         throw std::runtime_error("Failed to get socket flags");
-    }
     
-    if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+    if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) < 0)
         throw std::runtime_error("Failed to set socket non-blocking");
-    }
 }
 
 void Socket::setReuseAddr() {

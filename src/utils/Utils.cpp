@@ -8,13 +8,11 @@ std::string Utils::trim(const std::string& str) {
     size_t start = 0;
     size_t end = str.length() - 1;
     
-    while (start <= end && std::isspace(str[start])) {
+    while (start <= end && std::isspace(str[start]))
         start++;
-    }
     
-    while (end > start && std::isspace(str[end])) {
+    while (end > start && std::isspace(str[end]))
         end--;
-    }
     
     return str.substr(start, end - start + 1);
 }
@@ -29,31 +27,28 @@ std::vector<std::string> Utils::split(const std::string& str, char delimiter) {
                 result.push_back(current);
                 current.clear();
             }
-        } else {
-            current += str[i];
         }
+        else
+            current += str[i];
     }
     
-    if (!current.empty()) {
+    if (!current.empty())
         result.push_back(current);
-    }
     
     return result;
 }
 
 std::string Utils::toLowerCase(const std::string& str) {
     std::string result = str;
-    for (size_t i = 0; i < result.length(); ++i) {
+    for (size_t i = 0; i < result.length(); ++i)
         result[i] = std::tolower(result[i]);
-    }
     return result;
 }
 
 std::string Utils::toUpperCase(const std::string& str) {
     std::string result = str;
-    for (size_t i = 0; i < result.length(); ++i) {
+    for (size_t i = 0; i < result.length(); ++i)
         result[i] = std::toupper(result[i]);
-    }
     return result;
 }
 
@@ -64,17 +59,15 @@ bool Utils::fileExists(const std::string& path) {
 
 bool Utils::isDirectory(const std::string& path) {
     struct stat statbuf;
-    if (stat(path.c_str(), &statbuf) != 0) {
+    if (stat(path.c_str(), &statbuf) != 0)
         return false;
-    }
     return S_ISDIR(statbuf.st_mode);
 }
 
 std::string Utils::readFile(const std::string& path) {
     std::ifstream file(path.c_str(), std::ios::binary);
-    if (!file.is_open()) {
+    if (!file.is_open())
         return "";
-    }
     
     file.seekg(0, std::ios::end);
     size_t size = file.tellg();
@@ -88,9 +81,8 @@ std::string Utils::readFile(const std::string& path) {
 
 bool Utils::writeFile(const std::string& path, const std::string& content) {
     std::ofstream file(path.c_str(), std::ios::binary);
-    if (!file.is_open()) {
+    if (!file.is_open())
         return false;
-    }
     
     file.write(content.c_str(), content.length());
     return file.good();
@@ -98,22 +90,19 @@ bool Utils::writeFile(const std::string& path, const std::string& content) {
 
 std::string Utils::getFileExtension(const std::string& path) {
     size_t dot_pos = path.find_last_of('.');
-    if (dot_pos == std::string::npos || dot_pos == path.length() - 1) {
+    if (dot_pos == std::string::npos || dot_pos == path.length() - 1)
         return "";
-    }
     return path.substr(dot_pos);
 }
 
 std::string Utils::getMimeType(const std::string& extension) {
-    if (_mime_types.empty()) {
+    if (_mime_types.empty())
         initMimeTypes();
-    }
     
     std::string ext = toLowerCase(extension);
     std::map<std::string, std::string>::const_iterator it = _mime_types.find(ext);
-    if (it != _mime_types.end()) {
+    if (it != _mime_types.end())
         return it->second;
-    }
     return "application/octet-stream";
 }
 
@@ -149,14 +138,14 @@ std::string Utils::urlDecode(const std::string& url) {
             if (endptr == hex + 2) {
                 result += static_cast<char>(val);
                 i += 2;
-            } else {
-                result += url[i];
             }
-        } else if (url[i] == '+') {
-            result += ' ';
-        } else {
-            result += url[i];
+            else
+                result += url[i];
         }
+        else if (url[i] == '+') 
+            result += ' ';
+        else
+            result += url[i];
     }
     return result;
 }
@@ -165,9 +154,9 @@ std::string Utils::urlEncode(const std::string& url) {
     std::string result;
     for (size_t i = 0; i < url.length(); ++i) {
         char c = url[i];
-        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
             result += c;
-        } else {
+        else {
             char hex[4];
             sprintf(hex, "%%%02X", static_cast<unsigned char>(c));
             result += hex;
@@ -180,9 +169,8 @@ std::string Utils::getClientIP(int socket_fd) {
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
     
-    if (getpeername(socket_fd, (struct sockaddr*)&addr, &addr_len) == 0) {
+    if (getpeername(socket_fd, (struct sockaddr*)&addr, &addr_len) == 0)
         return std::string(inet_ntoa(addr.sin_addr));
-    }
     return "127.0.0.1";
 }
 

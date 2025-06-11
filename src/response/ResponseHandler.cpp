@@ -18,9 +18,8 @@ int ResponseHandler::handlePendingWrites(int client_fd) {
     std::map<int, std::string>::iterator buffer_it = _write_buffers.find(client_fd);
     std::map<int, size_t>::iterator pos_it = _write_positions.find(client_fd);
     
-    if (buffer_it == _write_buffers.end() || pos_it == _write_positions.end()) {
+    if (buffer_it == _write_buffers.end() || pos_it == _write_positions.end())
         return 0;
-    }
     
     const std::string& buffer = buffer_it->second;
     size_t& position = pos_it->second;
@@ -63,14 +62,12 @@ int ResponseHandler::handlePendingWrites(int client_fd) {
 
 bool ResponseHandler::hasDataToWrite(int client_fd) const {
     std::map<int, std::string>::const_iterator it = _write_buffers.find(client_fd);
-    if (it == _write_buffers.end()) {
+    if (it == _write_buffers.end())
         return false;
-    }
     
     std::map<int, size_t>::const_iterator pos_it = _write_positions.find(client_fd);
-    if (pos_it == _write_positions.end()) {
+    if (pos_it == _write_positions.end())
         return false;
-    }
     
     return pos_it->second < it->second.length();
 }
@@ -90,7 +87,8 @@ void ResponseHandler::sendSimpleResponse(int client_fd, const HttpRequest& reque
         response += "<p>Path: " + request.getPath() + "</p>";
         response += "<p>Version: " + request.getVersion() + "</p>";
         response += "</body></html>";
-    } else {
+    }
+    else {
         response = "HTTP/1.1 200 OK\r\n";
         response += "Content-Type: text/plain\r\n";
         response += "Connection: close\r\n";

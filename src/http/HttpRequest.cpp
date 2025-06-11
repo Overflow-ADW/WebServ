@@ -7,14 +7,11 @@ HttpRequest::~HttpRequest() {
 }
 
 bool HttpRequest::parseRequest(const std::string& raw_request) {
-    if (raw_request.empty()) {
+    if (raw_request.empty())
         return false;
-    }
-    
     size_t headers_end = raw_request.find("\r\n\r\n");
-    if (headers_end == std::string::npos) {
+    if (headers_end == std::string::npos)
         headers_end = raw_request.length();
-    }
     
     std::string headers_part = raw_request.substr(0, headers_end);
     
@@ -23,32 +20,27 @@ bool HttpRequest::parseRequest(const std::string& raw_request) {
     std::string line;
     
     while (std::getline(ss, line)) {
-        if (!line.empty() && line[line.length() - 1] == '\r') {
+        if (!line.empty() && line[line.length() - 1] == '\r')
             line = line.substr(0, line.length() - 1);
-        }
         lines.push_back(line);
     }
     
-    if (lines.empty()) {
+    if (lines.empty())
         return false;
-    }
     
     parseRequestLine(lines[0]);
     
-    for (size_t i = 1; i < lines.size() && !lines[i].empty(); ++i) {
+    for (size_t i = 1; i < lines.size() && !lines[i].empty(); ++i)
         parseHeader(lines[i]);
-    }
     
     if (headers_end < raw_request.length()) {
         size_t body_start = headers_end + 4;
-        if (body_start < raw_request.length()) {
+        if (body_start < raw_request.length())
             _body = raw_request.substr(body_start);
-        }
     }
     
-    if (_method.empty() || _path.empty() || _version.empty()) {
+    if (_method.empty() || _path.empty() || _version.empty())
         return false;
-    }
 
     _is_complete = true;
     return true;
@@ -67,13 +59,11 @@ void HttpRequest::parseRequestLine(const std::string& line) {
         return;
     }
     
-    if (_version != "HTTP/1.1" && _version != "HTTP/1.0") {
+    if (_version != "HTTP/1.1" && _version != "HTTP/1.0")
         std::cerr << "Unsupported HTTP version: " << _version << std::endl;
-    }
     
-    for (size_t i = 0; i < _method.length(); ++i) {
+    for (size_t i = 0; i < _method.length(); ++i)
         _method[i] = std::toupper(_method[i]);
-    }
 }
 
 void HttpRequest::parseHeader(const std::string& line) {
@@ -90,9 +80,8 @@ void HttpRequest::parseHeader(const std::string& line) {
     value = trim(value);
     
     if (!name.empty()) {
-        for (size_t i = 0; i < name.length(); ++i) {
+        for (size_t i = 0; i < name.length(); ++i)
             name[i] = std::tolower(name[i]);
-        }
         _headers[name] = value;
     }
 }
@@ -112,9 +101,8 @@ const std::string& HttpRequest::getVersion() const {
 const std::string& HttpRequest::getHeader(const std::string& name) const {
     static std::string empty;
     std::map<std::string, std::string>::const_iterator it = _headers.find(name);
-    if (it != _headers.end()) {
+    if (it != _headers.end())
         return it->second;
-    }
     return empty;
 }
 
@@ -128,9 +116,8 @@ const std::map<std::string, std::string>& HttpRequest::getHeaders() const {
 
 size_t HttpRequest::getContentLength() const {
     std::string content_length = getHeader("content-length");
-    if (content_length.empty()) {
+    if (content_length.empty())
         return 0;
-    }
     
     std::istringstream iss(content_length);
     size_t length;
@@ -176,9 +163,8 @@ void HttpRequest::print() const {
     if (!_body.empty()) {
         std::cout << BLUE << "Body (" << _body.length() << " bytes):" << RESET << std::endl;
         std::cout << _body.substr(0, 200);
-        if (_body.length() > 200) {
+        if (_body.length() > 200)
             std::cout << "...";
-        }
         std::cout << std::endl;
     }
     
@@ -187,9 +173,8 @@ void HttpRequest::print() const {
 
 std::string HttpRequest::trim(const std::string& str) {
     size_t first = str.find_first_not_of(" \t\r\n");
-    if (first == std::string::npos) {
+    if (first == std::string::npos)
         return "";
-    }
     
     size_t last = str.find_last_not_of(" \t\r\n");
     return str.substr(first, (last - first + 1));

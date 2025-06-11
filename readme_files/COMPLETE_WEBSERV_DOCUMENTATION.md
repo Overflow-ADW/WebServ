@@ -2,7 +2,7 @@
 
 **Date de génération:** 27 Mai 2025  
 **Statut:** ✅ CONFORME AUX EXIGENCES MANDATORY  
-**Version:** HTTP/1.1 Server C++98  
+**Version:** HTTP/1.1 Server C++98
 
 ## 🎯 Résumé Exécutif
 
@@ -10,17 +10,17 @@ Le projet **Webserv** est un serveur HTTP/1.1 complet implémenté en C++98, con
 
 ### ✅ Conformité aux Exigences Mandatory
 
-| Exigence | Statut | Implémentation |
-|----------|--------|----------------|
-| Serveur HTTP C++98 | ✅ | Architecture complète avec gestion d'erreurs |
-| Non-blocking avec select() | ✅ | Boucle principale avec FD_SET/FD_CLR/FD_ISSET |
-| Configuration file parsing | ✅ | Parser complet inspiré de Nginx |
-| Multi-port listening | ✅ | Support de plusieurs serveurs virtuels |
-| Méthodes GET/POST/DELETE | ✅ | Parsing et traitement complets |
-| Upload de fichiers | ✅ | Multipart/form-data binary-safe |
-| Support CGI | ✅ | Exécution avec pipe() et fork() |
-| Pages d'erreur personnalisées | ✅ | Configuration par serveur |
-| Serveur de fichiers statiques | ✅ | MIME types et gestion complète |
+| Exigence                      | Statut | Implémentation                                |
+| ----------------------------- | ------ | --------------------------------------------- |
+| Serveur HTTP C++98            | ✅     | Architecture complète avec gestion d'erreurs  |
+| Non-blocking avec select()    | ✅     | Boucle principale avec FD_SET/FD_CLR/FD_ISSET |
+| Configuration file parsing    | ✅     | Parser complet inspiré de Nginx               |
+| Multi-port listening          | ✅     | Support de plusieurs serveurs virtuels        |
+| Méthodes GET/POST/DELETE      | ✅     | Parsing et traitement complets                |
+| Upload de fichiers            | ✅     | Multipart/form-data binary-safe               |
+| Support CGI                   | ✅     | Exécution avec pipe() et fork()               |
+| Pages d'erreur personnalisées | ✅     | Configuration par serveur                     |
+| Serveur de fichiers statiques | ✅     | MIME types et gestion complète                |
 
 ---
 
@@ -49,6 +49,7 @@ webserv/
 ### 🔄 Flux d'Exécution depuis l'Entry Point
 
 #### 1. Point d'Entrée (`src/main.cpp`)
+
 ```cpp
 int main(int argc, char **argv)
 {
@@ -60,16 +61,17 @@ int main(int argc, char **argv)
 
     // 2. Parsing de la configuration
     ConfigParser config(argv[1]);
-    
+
     // 3. Initialisation du serveur
     Server server(config);
-    
+
     // 4. Démarrage de la boucle principale
     server.run();
 }
 ```
 
 #### 2. Configuration Parser (`ConfigParser`)
+
 - **Parsing des fichiers de configuration** inspiré de Nginx
 - **Support multi-serveur** avec virtual hosts
 - **Configuration des locations** avec méthodes autorisées
@@ -77,18 +79,21 @@ int main(int argc, char **argv)
 - **Pages d'erreur personnalisées**
 
 #### 3. Serveur Principal (`Server`)
+
 - **Architecture non-blocking** avec `select()`
 - **Gestion multi-port** pour plusieurs serveurs
 - **Traitement des connexions** clients
 - **Dispatch des requêtes** HTTP
 
 #### 4. Gestion des Sockets (`Socket`)
+
 - **Création de sockets** d'écoute
 - **Configuration non-blocking** avec `fcntl()`
 - **Acceptation des connexions** clients
 - **Gestion des erreurs** de réseau
 
 #### 5. Traitement HTTP (`HttpRequest`/`HttpResponse`)
+
 - **Parsing des requêtes** HTTP/1.1
 - **Génération des réponses** avec headers appropriés
 - **Support des méthodes** GET/POST/DELETE
@@ -101,29 +106,30 @@ int main(int argc, char **argv)
 ### 🌐 Serveur HTTP Core
 
 #### Architecture Non-Blocking
+
 ```cpp
 void Server::run() {
     while (_running) {
         // Initialisation des fd_sets
         FD_ZERO(&_read_fds);
         FD_ZERO(&_write_fds);
-        
+
         // Ajout des sockets d'écoute
         for (size_t i = 0; i < _sockets.size(); ++i) {
             int fd = _sockets[i]->getFd();
             FD_SET(fd, &_read_fds);
             if (fd > _max_fd) _max_fd = fd;
         }
-        
+
         // Ajout des clients connectés
-        for (std::map<int, Socket*>::iterator it = _client_sockets.begin(); 
+        for (std::map<int, Socket*>::iterator it = _client_sockets.begin();
              it != _client_sockets.end(); ++it) {
             FD_SET(it->first, &_read_fds);
         }
-        
+
         // select() avec timeout
         int activity = select(_max_fd + 1, &_read_fds, &_write_fds, NULL, &timeout);
-        
+
         // Traitement des nouvelles connexions
         // Traitement des requêtes clients
     }
@@ -131,6 +137,7 @@ void Server::run() {
 ```
 
 #### Multi-Port Listening
+
 - **Support de plusieurs ports** simultanément
 - **Virtual hosts** avec server_name
 - **Configuration flexible** par serveur
@@ -138,6 +145,7 @@ void Server::run() {
 ### 📋 Configuration Parser
 
 #### Format de Configuration (Inspiré Nginx)
+
 ```nginx
 server {
     listen 8080;
@@ -145,19 +153,19 @@ server {
     root ./www;
     index index.html;
     client_max_body_size 1000000;
-    
+
     error_page 404 /404.html;
-    
+
     location / {
         allowed_methods GET POST DELETE;
         autoindex off;
     }
-    
+
     location /upload {
         allowed_methods POST;
         upload_path ./uploads;
     }
-    
+
     location /cgi-bin {
         allowed_methods GET POST;
         cgi_extension .py .php;
@@ -167,6 +175,7 @@ server {
 ```
 
 #### Fonctionnalités de Configuration
+
 - **Multi-serveur** avec ports et hosts différents
 - **Locations configurables** avec règles spécifiques
 - **Pages d'erreur personnalisées** par code
@@ -176,29 +185,31 @@ server {
 ### 🔄 Traitement des Requêtes HTTP
 
 #### Parsing des Requêtes
+
 ```cpp
 bool HttpRequest::parseRequest(const std::string& raw_request) {
     // 1. Séparation headers/body
     size_t headers_end = raw_request.find("\r\n\r\n");
-    
+
     // 2. Parsing de la request line
     parseRequestLine(lines[0]);  // GET /path HTTP/1.1
-    
+
     // 3. Parsing des headers
     for (size_t i = 1; i < lines.size(); ++i) {
         parseHeader(lines[i]);
     }
-    
+
     // 4. Extraction du body
     if (headers_end < raw_request.length()) {
         _body = raw_request.substr(body_start);
     }
-    
+
     return _is_complete;
 }
 ```
 
 #### Méthodes HTTP Supportées
+
 - **GET:** Récupération de fichiers statiques
 - **POST:** Upload de fichiers, exécution CGI
 - **DELETE:** Suppression de ressources
@@ -206,8 +217,9 @@ bool HttpRequest::parseRequest(const std::string& raw_request) {
 ### 📤 Upload de Fichiers
 
 #### Support Multipart/Form-Data
+
 ```cpp
-bool Server::parseMultipartData(const std::string& body, 
+bool Server::parseMultipartData(const std::string& body,
                                const std::string& boundary,
                                const std::string& upload_path,
                                std::vector<std::string>& uploaded_files) {
@@ -220,6 +232,7 @@ bool Server::parseMultipartData(const std::string& body,
 ```
 
 #### Fonctionnalités Upload
+
 - **Binary-safe** pour tous types de fichiers
 - **Gestion des timeouts** pour éviter les blocages
 - **Vérification de taille** avec limites configurables
@@ -229,6 +242,7 @@ bool Server::parseMultipartData(const std::string& body,
 ### 🐍 Support CGI
 
 #### Exécution CGI
+
 ```cpp
 bool HttpResponse::executeCgi(const std::string& script_path,
                              const std::string& cgi_path,
@@ -237,51 +251,54 @@ bool HttpResponse::executeCgi(const std::string& script_path,
     // 1. Création des pipes pour communication
     int pipe_in[2], pipe_out[2];
     pipe(pipe_in); pipe(pipe_out);
-    
+
     // 2. Fork du processus
     pid_t pid = fork();
-    
+
     if (pid == 0) {
         // Processus enfant
         dup2(pipe_in[0], STDIN_FILENO);   // Redirection stdin
         dup2(pipe_out[1], STDOUT_FILENO); // Redirection stdout
-        
+
         // Configuration de l'environnement CGI
         for (env_vars) setenv(key, value, 1);
-        
+
         // Exécution du script
         execl(cgi_path, cgi_path, script_path, NULL);
-    } else {
+    }
+    else {
         // Processus parent
         // Envoi du body via stdin
         write(pipe_in[1], request_body.c_str(), request_body.length());
-        
+
         // Lecture de la réponse via stdout
         while ((bytes_read = read(pipe_out[0], buffer, sizeof(buffer))) > 0) {
             cgi_output += buffer;
         }
-        
+
         waitpid(pid, &status, 0);
     }
 }
 ```
 
 #### Environnement CGI Standard
+
 - **REQUEST_METHOD:** GET/POST/DELETE
 - **REQUEST_URI:** Chemin de la requête
 - **QUERY_STRING:** Paramètres GET
 - **CONTENT_LENGTH:** Taille du body
 - **CONTENT_TYPE:** Type de contenu
-- **HTTP_*** Variables des headers
-- **SERVER_*** Informations serveur
+- **HTTP\_\*** Variables des headers
+- **SERVER\_\*** Informations serveur
 
 ### 📁 Serveur de Fichiers Statiques
 
 #### Détection MIME Type
+
 ```cpp
 std::string HttpResponse::getMimeType(const std::string& file_path) {
     std::string ext = getFileExtension(file_path);
-    
+
     if (ext == ".html" || ext == ".htm") return "text/html";
     if (ext == ".css") return "text/css";
     if (ext == ".js") return "application/javascript";
@@ -289,12 +306,13 @@ std::string HttpResponse::getMimeType(const std::string& file_path) {
     if (ext == ".png") return "image/png";
     if (ext == ".jpg" || ext == ".jpeg") return "image/jpeg";
     // ... 30+ types supportés
-    
+
     return "application/octet-stream";
 }
 ```
 
 #### Fonctionnalités Statiques
+
 - **Détection MIME automatique** pour 30+ types
 - **Lecture binary-safe** des fichiers
 - **Headers HTTP appropriés** (Content-Type, Content-Length)
@@ -308,6 +326,7 @@ std::string HttpResponse::getMimeType(const std::string& file_path) {
 ### ✅ Fonctions Autorisées (Conformes au Sujet)
 
 #### Réseau et Sockets
+
 ```cpp
 // Création et configuration de sockets
 socket()        // Création des sockets TCP
@@ -334,6 +353,7 @@ getprotobyname() // Informations protocole
 ```
 
 #### Multiplexage I/O
+
 ```cpp
 // select() et macros associées
 select()        // Multiplexage I/O principal
@@ -352,6 +372,7 @@ kevent()        // BSD kqueue (non utilisé)
 ```
 
 #### Gestion des Processus (CGI)
+
 ```cpp
 fork()          // Création de processus pour CGI
 execve()        // Exécution des scripts CGI
@@ -366,6 +387,7 @@ pipe()          // Communication inter-processus
 ```
 
 #### Conversion d'Endianness
+
 ```cpp
 htons()         // Host to network short
 htonl()         // Host to network long
@@ -374,6 +396,7 @@ ntohl()         // Network to host long
 ```
 
 #### Système de Fichiers
+
 ```cpp
 open()          // Ouverture de fichiers
 close()         // Fermeture de descripteurs
@@ -390,6 +413,7 @@ chdir()         // Changement de répertoire de travail
 ```
 
 #### Gestion d'Erreurs
+
 ```cpp
 strerror()      // Messages d'erreur système
 gai_strerror()  // Messages d'erreur getaddrinfo
@@ -399,6 +423,7 @@ errno           // Variable globale d'erreur (lecture uniquement)
 ### 🚫 Restrictions Respectées
 
 #### Interdictions du Sujet
+
 - **❌ Pas d'execve d'un autre serveur web** (nginx, apache)
 - **❌ Pas de fork sauf pour CGI** (PHP, Python, etc.)
 - **❌ Pas de vérification errno après read/write** dans la boucle principale
@@ -406,6 +431,7 @@ errno           // Variable globale d'erreur (lecture uniquement)
 - **❌ Pas de bibliothèques externes** (Boost interdit)
 
 #### Conformité C++98
+
 - **✅ Compilation avec -std=c++98**
 - **✅ Headers C++ privilégiés** (`<cstring>` vs `<string.h>`)
 - **✅ Pas de fonctionnalités C++11+** (auto, lambda, etc.)
@@ -418,6 +444,7 @@ errno           // Variable globale d'erreur (lecture uniquement)
 ### 🏛️ Architecture Orientée Objet
 
 #### Séparation des Responsabilités
+
 ```cpp
 class Server {
     // Responsabilité: Gestion du serveur principal
@@ -449,6 +476,7 @@ class ConfigParser {
 ```
 
 #### Encapsulation et Abstraction
+
 - **Encapsulation des données** avec membres privés
 - **Interfaces publiques claires** pour chaque classe
 - **Abstraction des détails** réseau et HTTP
@@ -457,16 +485,17 @@ class ConfigParser {
 ### 🔄 Pattern Observer/Event-Driven
 
 #### Architecture Non-Blocking
+
 ```cpp
 // Pattern événementiel avec select()
 while (_running) {
     // Préparation des sets de descripteurs
     FD_ZERO(&_read_fds);
     setupFileDescriptors();
-    
+
     // Attente d'événements
     int activity = select(_max_fd + 1, &_read_fds, NULL, NULL, &timeout);
-    
+
     // Traitement des événements
     if (activity > 0) {
         handleEvents();  // Dispatch selon le type d'événement
@@ -475,6 +504,7 @@ while (_running) {
 ```
 
 #### Avantages de l'Architecture
+
 - **Non-blocking I/O** évite les blocages
 - **Scalabilité** avec gestion simultanée de multiple clients
 - **Réactivité** avec timeouts appropriés
@@ -483,6 +513,7 @@ while (_running) {
 ### 🏗️ Pattern Factory/Builder
 
 #### Configuration Builder
+
 ```cpp
 // Construction progressive de la configuration
 ConfigParser parser(config_file);
@@ -501,6 +532,7 @@ Server server(parser);
 ### 🔒 Defensive Programming
 
 #### Gestion d'Erreurs Robuste
+
 ```cpp
 try {
     ConfigParser config(argv[1]);
@@ -513,6 +545,7 @@ try {
 ```
 
 #### Validation des Entrées
+
 - **Vérification des arguments** de ligne de commande
 - **Validation des requêtes HTTP** (format, taille)
 - **Contrôle des accès fichiers** (existence, permissions)
@@ -521,18 +554,21 @@ try {
 ### 📏 Principes SOLID (Adaptés C++98)
 
 #### Single Responsibility Principle
+
 - **Chaque classe** a une responsabilité unique
 - **HttpRequest** se contente du parsing
 - **HttpResponse** se contente de la génération
 - **Server** se contente de la gestion réseau
 
 #### Open/Closed Principle
+
 - **Extensions possibles** sans modification du code core
 - **Nouveaux types MIME** via la classe Utils
 - **Nouvelles méthodes HTTP** via le dispatcher
 - **Nouveaux types CGI** via la configuration
 
 #### Dependency Inversion
+
 - **Server dépend de ConfigParser** (abstraction)
 - **Injection de dépendances** via les constructeurs
 - **Interfaces stables** entre les composants
@@ -544,26 +580,31 @@ try {
 ### 💥 Scénarios de Crash Identifiés
 
 #### 1. Épuisement de Descripteurs de Fichiers
+
 ```bash
 # Attaque par ouverture massive de connexions
 for i in {1..10000}; do
     (echo "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc localhost 8080 &)
 done
 ```
+
 **Cause:** Dépassement de `ulimit -n`  
 **Protection:** Limite de connexions simultanées recommandée
 
 #### 2. Épuisement Mémoire avec Body Massif
+
 ```bash
 # Body de taille énorme
 dd if=/dev/zero bs=1M count=1000 | \
 curl -X POST -H "Content-Type: application/octet-stream" \
      --data-binary @- http://localhost:8080/upload
 ```
+
 **Cause:** `client_max_body_size` mal configuré  
 **Protection:** Vérification de `Content-Length` avant lecture complète
 
 #### 3. Attaque Slowloris
+
 ```python
 import socket
 import time
@@ -577,10 +618,12 @@ for i in range(1000):
     s.send(b"Host: localhost\r\n")
     # Ne jamais envoyer la ligne vide finale
 ```
+
 **Cause:** Pas de timeout sur les requêtes incomplètes  
 **Protection:** Timeout implémenté dans `select()`
 
 #### 4. Fork Bomb via CGI
+
 ```bash
 # Script CGI malicieux
 #!/bin/bash
@@ -589,20 +632,24 @@ fork() {
 }
 fork
 ```
+
 **Cause:** CGI non contrôlé  
 **Protection:** Limitation du nombre de processus CGI simultanés
 
 #### 5. Path Traversal
+
 ```bash
 curl "http://localhost:8080/../../../../../etc/passwd"
 curl "http://localhost:8080/upload/../../config/secrets.conf"
 ```
+
 **Cause:** Validation insuffisante des chemins  
 **Protection:** Normalisation des chemins et validation
 
 ### 🛡️ Protections Implémentées
 
 #### Gestion des Resources
+
 ```cpp
 // Timeout sur select() pour éviter les blocages
 struct timeval timeout;
@@ -618,6 +665,7 @@ if (activity == 0) {
 ```
 
 #### Validation des Entrées
+
 ```cpp
 // Vérification de la taille avant lecture
 size_t content_length = request.getContentLength();
@@ -637,6 +685,7 @@ if (normalized_path.find("..") != std::string::npos) {
 ### 🔍 Tests de Stress et Robustesse
 
 #### Test de Charge
+
 ```bash
 # Test avec ab (Apache Benchmark)
 ab -n 10000 -c 100 http://localhost:8080/
@@ -650,6 +699,7 @@ wait
 ```
 
 #### Test de Résistance
+
 ```bash
 # Requêtes malformées
 echo -e "INVALID REQUEST\r\n\r\n" | nc localhost 8080
@@ -670,21 +720,23 @@ s.send(b'\r\n')
 ### 🚨 Recommandations de Déploiement
 
 #### Configuration de Production
+
 ```nginx
 server {
     # Limite raisonnable pour éviter les attaques
     client_max_body_size 10485760;  # 10MB max
-    
+
     # Timeout de sécurité
     client_header_timeout 60;
     client_body_timeout 60;
-    
+
     # Limitations de connexions
     worker_connections 1024;
 }
 ```
 
 #### Monitoring et Logs
+
 - **Surveillance des connexions** simultanées
 - **Logs d'accès** pour détecter les attaques
 - **Alertes sur usage mémoire** excessif
@@ -697,6 +749,7 @@ server {
 ### ✅ Tests de Conformité HTTP/1.1
 
 #### Requêtes Standards
+
 ```bash
 # GET basique
 curl -v http://localhost:8080/
@@ -712,10 +765,11 @@ curl -X DELETE http://localhost:8080/file.txt
 ```
 
 #### Headers HTTP
+
 ```bash
 # Vérification des headers de réponse
 curl -I http://localhost:8080/index.html
-# Expected: 
+# Expected:
 # HTTP/1.1 200 OK
 # Content-Type: text/html
 # Content-Length: XXX
@@ -725,6 +779,7 @@ curl -I http://localhost:8080/index.html
 ### 🔧 Tests de Fonctionnalités
 
 #### Upload de Fichiers
+
 ```bash
 # Upload simple
 curl -X POST -F "file=@test.txt" http://localhost:8080/upload/
@@ -742,6 +797,7 @@ done
 ```
 
 #### CGI Scripts
+
 ```python
 #!/usr/bin/env python3
 # www/cgi-bin/test.py
@@ -758,6 +814,7 @@ curl http://localhost:8080/cgi-bin/test.py
 ### 🌐 Tests Multi-Serveur
 
 #### Configuration Multi-Port
+
 ```nginx
 server {
     listen 8080;
@@ -785,6 +842,7 @@ curl -H "Host: example.com" http://localhost:8081/
 ### 📈 Tests de Performance
 
 #### Benchmarks
+
 ```bash
 # Test de débit
 ab -n 1000 -c 10 http://localhost:8080/index.html
@@ -800,6 +858,7 @@ siege -c 50 -t 30s http://localhost:8080/
 ```
 
 #### Métriques Obtenues
+
 - **Débit statique:** ~1000 req/s (fichiers HTML/CSS)
 - **Upload:** ~56 MB/s (fichiers binaires)
 - **Concurrence:** 50 connexions simultanées stables
@@ -812,6 +871,7 @@ siege -c 50 -t 30s http://localhost:8080/
 ### 📋 Prérequis Système
 
 #### Environnement de Compilation
+
 ```bash
 # Compilateur C++98 compatible
 g++ --version
@@ -826,6 +886,7 @@ uname -s
 ```
 
 #### Compilation
+
 ```bash
 make
 # Génère l'exécutable ./webserv
@@ -838,29 +899,30 @@ make re       # Recompilation complète
 ### ⚙️ Configuration Recommandée
 
 #### Production
+
 ```nginx
 server {
     listen 80;
     server_name mywebsite.com;
     root /var/www/mysite;
     index index.html index.htm;
-    
+
     client_max_body_size 10485760;  # 10MB
-    
+
     error_page 404 /404.html;
     error_page 500 502 503 504 /50x.html;
-    
+
     location / {
         allowed_methods GET POST;
         autoindex off;
     }
-    
+
     location /api {
         allowed_methods GET POST DELETE;
         cgi_extension .py;
         cgi_path /usr/bin/python3;
     }
-    
+
     location /upload {
         allowed_methods POST;
         upload_path /var/www/uploads;
@@ -869,25 +931,26 @@ server {
 ```
 
 #### Développement
+
 ```nginx
 server {
     listen 8080;
     server_name localhost;
     root ./www;
     index index.html;
-    
+
     client_max_body_size 100000000;  # 100MB pour tests
-    
+
     location / {
         allowed_methods GET POST DELETE;
         autoindex on;  # Listing des répertoires
     }
-    
+
     location /upload {
         allowed_methods GET POST;
         upload_path ./uploads;
     }
-    
+
     location /cgi-bin {
         allowed_methods GET POST;
         cgi_extension .py .php .sh;
@@ -899,6 +962,7 @@ server {
 ### 🔧 Utilisation
 
 #### Démarrage
+
 ```bash
 # Avec configuration personnalisée
 ./webserv configs/production.conf
@@ -915,6 +979,7 @@ server {
 ```
 
 #### Arrêt
+
 ```bash
 # Ctrl+C pour arrêt propre
 # Le serveur nettoie automatiquement:
@@ -930,6 +995,7 @@ server {
 ### 🐛 Debugging
 
 #### Logs Intégrés
+
 ```cpp
 // Le serveur affiche automatiquement:
 std::cout << BLUE << "📨 Handling request from client " << client_fd << RESET;
@@ -938,6 +1004,7 @@ std::cout << CYAN << "🔍 Using server config: " << server_config->server_name;
 ```
 
 #### Outils de Debug
+
 ```bash
 # Monitoring des connexions
 netstat -an | grep :8080
@@ -958,6 +1025,7 @@ Host: localhost
 ### 🔧 Maintenance
 
 #### Gestion des Logs
+
 ```bash
 # Redirection des logs
 ./webserv configs/default.conf > webserv.log 2>&1
@@ -967,6 +1035,7 @@ logrotate --force /etc/logrotate.d/webserv
 ```
 
 #### Surveillance
+
 ```bash
 # Script de monitoring simple
 #!/bin/bash
@@ -986,16 +1055,19 @@ done
 ### ⚡ Optimisations Implémentées
 
 #### I/O Non-Blocking
+
 - **Évite les blocages** sur read/write
 - **Gestion simultanée** de multiples clients
 - **Timeouts appropriés** pour éviter les connexions fantômes
 
 #### Gestion Mémoire
+
 - **RAII avec destructeurs** pour nettoyage automatique
 - **Containers STL** pour gestion mémoire sécurisée
 - **Pas de malloc/free** manuel (sauf nécessité système)
 
 #### Parsing Optimisé
+
 - **Parsing incrémental** des requêtes HTTP
 - **Évite les copies** inutiles de strings
 - **Cache des configurations** parsées
@@ -1003,16 +1075,18 @@ done
 ### 📊 Métriques de Performance
 
 #### Benchmarks Réalisés
-| Métrique | Valeur | Conditions |
-|----------|--------|------------|
-| Req/sec (statique) | ~1000 | Fichiers HTML 1KB |
-| Upload speed | 56 MB/s | Fichiers binaires |
-| Connexions max | 1000+ | Selon ulimit |
-| Latence moyenne | <10ms | Réseau local |
-| Mémoire (base) | ~5MB | Sans connexions |
-| Mémoire (100 clients) | ~45MB | Connexions actives |
+
+| Métrique              | Valeur  | Conditions         |
+| --------------------- | ------- | ------------------ |
+| Req/sec (statique)    | ~1000   | Fichiers HTML 1KB  |
+| Upload speed          | 56 MB/s | Fichiers binaires  |
+| Connexions max        | 1000+   | Selon ulimit       |
+| Latence moyenne       | <10ms   | Réseau local       |
+| Mémoire (base)        | ~5MB    | Sans connexions    |
+| Mémoire (100 clients) | ~45MB   | Connexions actives |
 
 #### Recommandations Optimisation
+
 ```cpp
 // Pour de meilleures performances:
 #define MAX_CONNECTIONS 1000
@@ -1046,16 +1120,19 @@ Le projet **Webserv** répond intégralement aux exigences mandatory du sujet:
 ### 🏆 Points Forts de l'Implémentation
 
 #### Architecture Robuste
+
 - **Séparation claire des responsabilités** entre classes
 - **Gestion d'erreurs complète** à tous les niveaux
 - **Code maintenable et extensible** avec documentation
 
 #### Performance et Scalabilité
+
 - **Architecture événementielle** non-blocking efficace
 - **Gestion optimisée** des ressources système
 - **Support concurrent** de centaines de connexions
 
 #### Sécurité et Robustesse
+
 - **Validation complète** des entrées utilisateur
 - **Protection contre** les attaques communes
 - **Gestion des timeouts** et limitations appropriées
@@ -1063,6 +1140,7 @@ Le projet **Webserv** répond intégralement aux exigences mandatory du sujet:
 ### 🚀 Prêt pour Production
 
 Le serveur Webserv est **production-ready** avec:
+
 - **Code testé** et validé sur multiples scénarios
 - **Documentation complète** pour maintenance
 - **Configuration flexible** pour différents environnements
@@ -1072,4 +1150,4 @@ Le serveur Webserv est **production-ready** avec:
 
 ---
 
-*Fin de la documentation complète - Projet Webserv v1.0*
+_Fin de la documentation complète - Projet Webserv v1.0_

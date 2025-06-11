@@ -25,16 +25,13 @@ void Server::setupSockets() {
             _sockets.push_back(socket);
             
             int socket_fd = socket->getFd();
-            if (socket_fd > _max_fd) {
+            if (socket_fd > _max_fd)
                 _max_fd = socket_fd;
-            }
             
-            std::cout << GREEN << "Socket listening on " << config.host 
-                      << ":" << config.port << RESET << std::endl;
+            std::cout << GREEN << "Socket listening on " << config.host << ":" << config.port << RESET << std::endl;
                       
         } catch (const std::exception& e) {
-            std::cerr << RED << "Failed to create socket for port " 
-                      << config.port << ": " << e.what() << RESET << std::endl;
+            std::cerr << RED << "Failed to create socket for port " << config.port << ": " << e.what() << RESET << std::endl;
             throw;
         }
     }
@@ -54,9 +51,8 @@ void Server::run() {
             int fd = _sockets[i]->getFd();
             if (fd >= 0) {
                 FD_SET(fd, &_read_fds);
-                if (fd > _max_fd) {
+                if (fd > _max_fd)
                     _max_fd = fd;
-                }
             }
         }
         
@@ -66,13 +62,11 @@ void Server::run() {
             if (fd >= 0) { 
                 FD_SET(fd, &_read_fds);
                 
-                if (_response_handler.hasDataToWrite(fd)) {
+                if (_response_handler.hasDataToWrite(fd))
                     FD_SET(fd, &_write_fds);
-                }
                 
-                if (fd > _max_fd) {
+                if (fd > _max_fd)
                     _max_fd = fd;
-                }
             }
         }
         
@@ -99,11 +93,9 @@ void Server::run() {
             time_t current_time = time(NULL);
             std::vector<int> timed_out_clients;
             
-            for (std::map<int, time_t>::iterator it = _client_timestamps.begin(); 
-                 it != _client_timestamps.end(); ++it) {
-                if (current_time - it->second > 30) {
+            for (std::map<int, time_t>::iterator it = _client_timestamps.begin(); it != _client_timestamps.end(); ++it) {
+                if (current_time - it->second > 30)
                     timed_out_clients.push_back(it->first);
-                }
             }
             
             for (size_t i = 0; i < timed_out_clients.size(); ++i) {
@@ -118,23 +110,19 @@ void Server::run() {
         
         for (size_t i = 0; i < _sockets.size(); ++i) {
             int fd = _sockets[i]->getFd();
-            if (fd >= 0 && FD_ISSET(fd, &_read_fds)) {
+            if (fd >= 0 && FD_ISSET(fd, &_read_fds))
                 handleNewConnection(*_sockets[i]);
-            }
         }
         
         std::vector<int> client_fds;
-        for (std::map<int, Socket*>::iterator it = _client_sockets.begin(); 
-             it != _client_sockets.end(); ++it) {
+        for (std::map<int, Socket*>::iterator it = _client_sockets.begin(); it != _client_sockets.end(); ++it)
             client_fds.push_back(it->first);
-        }
         
         for (size_t i = 0; i < client_fds.size(); ++i) {
             int fd = client_fds[i];
             if (_client_sockets.find(fd) != _client_sockets.end()) {
-                if (FD_ISSET(fd, &_read_fds)) {
+                if (FD_ISSET(fd, &_read_fds))
                     handleClientRequest(fd);
-                }
                 if (FD_ISSET(fd, &_write_fds)) {
                     int write_result = _response_handler.handlePendingWrites(fd);
                     if (write_result != 0)
@@ -175,9 +163,8 @@ void Server::handleClientRequest(int client_fd) {
     }
     
     std::string raw_request;
-    if (_partial_requests.find(client_fd) != _partial_requests.end()) {
+    if (_partial_requests.find(client_fd) != _partial_requests.end())
         raw_request = _partial_requests[client_fd];
-    }
     
     char buffer[4096];
     memset(buffer, 0, sizeof(buffer));
@@ -238,16 +225,15 @@ void Server::handleClientRequest(int client_fd) {
     
     std::cout << CYAN << "Raw request (" << raw_request.length() << " bytes):" << RESET << std::endl;
     size_t body_start = raw_request.find("\r\n\r\n");
-    if (body_start != std::string::npos) {
+    if (body_start != std::string::npos)
         body_start += 4;
-    }
     
     if (body_start != std::string::npos && body_start < raw_request.length()) {
         std::cout << raw_request.substr(0, body_start) << std::endl;
         std::cout << "[Body: " << (raw_request.length() - body_start) << " bytes]" << std::endl;
-    } else {
-        std::cout << raw_request << std::endl;
     }
+    else
+        std::cout << raw_request << std::endl;
     
     HttpRequest request;
     if (request.parseRequest(raw_request)) {
@@ -268,7 +254,8 @@ void Server::handleClientRequest(int client_fd) {
         }
         
         processHttpRequest(client_fd, request);
-    } else {
+    }
+    else {
         std::cerr << RED << "Failed to parse HTTP request" << RESET << std::endl;
         _response_handler.sendErrorResponse(client_fd, 400, "Bad Request");
     }
@@ -317,9 +304,8 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
         request_port = atoi(port_str.c_str());
         host = host.substr(0, colon_pos);
     }
-    if (request_port == -1) {
+    if (request_port == -1)
         request_port = 8080;
-    }
     
     const ServerConfig* server_config = findServerConfig(host, request_port);
     if (!server_config) {
@@ -343,9 +329,8 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
     
     const std::string& body = request.getBody();
     size_t max_body_size = location_config->client_max_body_size;
-    if (max_body_size == 0) {
+    if (max_body_size == 0)
         max_body_size = server_config->client_max_body_size;
-    }
     
     if (body.length() > max_body_size) {
         std::cerr << RED << "Request body too large: " << body.length() 
@@ -381,7 +366,8 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
             std::string response_str = response.toString();
             _response_handler.queueResponse(client_fd, response_str);
             std::cout << GREEN << "CGI response queued (" << response_str.length() << " bytes)" << RESET << std::endl;
-        } else {
+        }
+        else {
             std::string response_str = response.toString();
             _response_handler.queueResponse(client_fd, response_str);
             std::cout << RED << "CGI execution failed" << RESET << std::endl;
@@ -417,7 +403,8 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
             std::string response_str = response.str();
             _response_handler.queueResponse(client_fd, response_str);
             std::cout << GREEN << "Upload success response queued (" << response_str.length() << " bytes)" << RESET << std::endl;
-        } else {
+        }
+        else {
             std::ostringstream response;
             response << "HTTP/1.1 400 Bad Request\r\n";
             response << "Content-Type: text/html\r\n";
@@ -433,29 +420,25 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
         return;
     }
     
-    if (request.getMethod() == "GET") {
+    if (request.getMethod() == "GET")
         serveStaticFile(client_fd, request, *server_config, *location_config);
-    } else {
+    else
         _response_handler.sendSimpleResponse(client_fd, request);
-    }
 }
 
 const ServerConfig* Server::findServerConfig(const std::string& host, int port) const {
     for (size_t i = 0; i < _configs.size(); ++i) {
-        if (_configs[i].server_name == host && _configs[i].port == port) {
+        if (_configs[i].server_name == host && _configs[i].port == port)
             return &_configs[i];
-        }
     }
     
     for (size_t i = 0; i < _configs.size(); ++i) {
-        if (_configs[i].port == port) {
+        if (_configs[i].port == port)
             return &_configs[i];
-        }
     }
     
-    if (!_configs.empty()) {
+    if (!_configs.empty())
         return &_configs[0];
-    }
     
     return NULL;
 }
@@ -502,30 +485,26 @@ void Server::serveStaticFile(int client_fd, const HttpRequest& request,
     std::string requested_path = request.getPath();
     
     size_t query_pos = requested_path.find('?');
-    if (query_pos != std::string::npos) {
+    if (query_pos != std::string::npos)
         requested_path = requested_path.substr(0, query_pos);
-    }
     
     std::string file_path;
     
-    if (requested_path == "/") {
+    if (requested_path == "/")
         file_path = server_config.root + "/" + server_config.index;
-    } else if (requested_path == location_config.path || 
-               (requested_path == location_config.path + "/" && location_config.path != "/")) {
+    else if (requested_path == location_config.path || (requested_path == location_config.path + "/" && location_config.path != "/"))
         file_path = server_config.root + location_config.path + "/" + server_config.index;
-    } else {
+    else {
         std::string relative_path = requested_path;
         if (requested_path.find(location_config.path) == 0 && location_config.path != "/") {
             relative_path = requested_path.substr(location_config.path.length());
-            if (!relative_path.empty() && relative_path[0] == '/') {
+            if (!relative_path.empty() && relative_path[0] == '/')
                 relative_path = relative_path.substr(1);
-            }
         }
-        if (relative_path.empty() || relative_path[0] != '/') {
+        if (relative_path.empty() || relative_path[0] != '/')
             file_path = server_config.root + "/" + relative_path;
-        } else {
+        else
             file_path = server_config.root + relative_path;
-        }
     }
     
     std::cout << BLUE << "Serving file: " << file_path << RESET << std::endl;
@@ -535,11 +514,11 @@ void Server::serveStaticFile(int client_fd, const HttpRequest& request,
         std::string response_str = response.toString();
         _response_handler.queueResponse(client_fd, response_str);
         std::cout << GREEN << "File response queued (" << response_str.length() << " bytes)" << RESET << std::endl;
-    } else {
+    }
+    else {
         std::string error_page_path;
-        if (server_config.error_pages.find(404) != server_config.error_pages.end()) {
+        if (server_config.error_pages.find(404) != server_config.error_pages.end())
             error_page_path = server_config.root + "/" + server_config.error_pages.at(404);
-        }
         
         response.serveErrorPage(404, error_page_path);
         std::string response_str = response.toString();
