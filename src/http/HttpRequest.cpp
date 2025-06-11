@@ -40,7 +40,7 @@ bool HttpRequest::parseRequest(const std::string& raw_request) {
     }
     
     if (headers_end < raw_request.length()) {
-        size_t body_start = headers_end + 4; // Always CRLF format (\r\n\r\n)
+        size_t body_start = headers_end + 4;
         if (body_start < raw_request.length()) {
             _body = raw_request.substr(body_start);
         }

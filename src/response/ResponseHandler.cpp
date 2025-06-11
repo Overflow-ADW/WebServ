@@ -109,7 +109,6 @@ void ResponseHandler::sendSimpleResponse(int client_fd, const HttpRequest& reque
 }
 
 void ResponseHandler::sendErrorResponse(int client_fd, int status_code, const std::string& message) {
-    // ✅ Utiliser la fonction complète HttpResponse::getStatusText() au lieu de dupliquer
     std::string status_text = HttpResponse::getStatusText(status_code);
     
     std::ostringstream response;
