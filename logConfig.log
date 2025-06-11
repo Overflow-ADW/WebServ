@@ -1,0 +1,33 @@
+=== Configuration Debug ===
+
+  Server 1:
+   Host: 127.0.0.1
+   Port: 8080
+   Server name: example.test
+   Root: ./www
+   Index: index.html
+   Max body size: 1000000 bytes
+  Locations:
+      /:
+      Methods: GET, POST
+      Autoindex: OFF
+      /:
+      Methods: GET, POST, DELETE
+      Autoindex: ON
+
+  Server 2:
+   Host: 127.0.0.1
+   Port: 8081
+   Server name: example.test
+   Root: ./www_example
+   Index: index.html
+   Max body size: 1000000 bytes
+  Locations:
+      /:
+      Methods: GET, POST
+      Autoindex: OFF
+      /:
+      Methods: GET, POST, DELETE
+      Autoindex: ON
+
+=== End Configuration ===

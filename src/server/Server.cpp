@@ -141,7 +141,11 @@ void Server::handleNewConnection(Socket& listening_socket) {
             _client_sockets[client_fd] = client_socket;
             _client_timestamps[client_fd] = time(NULL);
             
-            std::cout << CYAN << "New connection accepted on fd " << client_fd << RESET << std::endl;
+            // Store which listening socket this client came from
+            _client_listening_ports[client_fd] = listening_socket.getPort();
+            
+            std::cout << CYAN << "New connection accepted on fd " << client_fd 
+                      << " (listening port: " << listening_socket.getPort() << ")" << RESET << std::endl;
         }
     } catch (const std::exception& e) {
         std::cerr << RED << "Error accepting connection: " << e.what() << RESET << std::endl;
@@ -275,6 +279,7 @@ void Server::closeConnection(int client_fd) {
     _partial_requests.erase(client_fd);
     _expected_lengths.erase(client_fd);
     _client_timestamps.erase(client_fd);
+    _client_listening_ports.erase(client_fd);  // Clean up port mapping
 }
 
 void Server::stop() {
@@ -286,6 +291,12 @@ void Server::stop() {
         close(it->first);
     }
     _client_sockets.clear();
+    
+    // Clear all client-related maps
+    _partial_requests.clear();
+    _expected_lengths.clear();
+    _client_timestamps.clear();
+    _client_listening_ports.clear();
     
     std::cout << RED << "Server stopped" << RESET << std::endl;
 }
@@ -304,8 +315,17 @@ void Server::processHttpRequest(int client_fd, const HttpRequest& request) {
         request_port = atoi(port_str.c_str());
         host = host.substr(0, colon_pos);
     }
-    if (request_port == -1)
-        request_port = 8080;
+    
+    // If no port in Host header, use the port this connection came from
+    if (request_port == -1) {
+        std::map<int, int>::iterator port_it = _client_listening_ports.find(client_fd);
+        if (port_it != _client_listening_ports.end()) {
+            request_port = port_it->second;
+        } else {
+            // Fallback to 8080 only if we can't determine the port
+            request_port = 8080;
+        }
+    }
     
     const ServerConfig* server_config = findServerConfig(host, request_port);
     if (!server_config) {
