@@ -17,7 +17,6 @@ void HttpResponse::setHeader(const std::string& name, const std::string& value) 
 
 void HttpResponse::setBody(const std::string& body) {
     _body = body;
-    // Définir automatiquement Content-Length
     std::ostringstream oss;
     oss << body.length();
     setHeader("Content-Length", oss.str());
@@ -47,19 +46,15 @@ const std::string& HttpResponse::getBody() const {
 std::string HttpResponse::toString() const {
     std::ostringstream response;
     
-    // Status line
     response << "HTTP/1.1 " << _status_code << " " << _status_message << "\r\n";
     
-    // Headers
     for (std::map<std::string, std::string>::const_iterator it = _headers.begin();
          it != _headers.end(); ++it) {
         response << it->first << ": " << it->second << "\r\n";
     }
     
-    // Empty line before body
     response << "\r\n";
     
-    // Body
     response << _body;
     
     return response.str();
@@ -118,12 +113,10 @@ bool HttpResponse::serveErrorPage(int error_code, const std::string& error_path)
     
     std::string body;
     
-    // Try to serve custom error page
     if (!error_path.empty() && fileExists(error_path)) {
         body = readFile(error_path);
     }
     
-    // Fallback to default error page
     if (body.empty()) {
         body = "<html><head><title>" + status_text + "</title></head>";
         body += "<body style='font-family: Arial, sans-serif; text-align: center; padding: 50px;'>";
@@ -140,7 +133,6 @@ bool HttpResponse::serveErrorPage(int error_code, const std::string& error_path)
 }
 
 std::string HttpResponse::getMimeType(const std::string& file_path) {
-    // Find file extension
     size_t dot_pos = file_path.find_last_of('.');
     if (dot_pos == std::string::npos) {
         return "application/octet-stream";
@@ -148,12 +140,10 @@ std::string HttpResponse::getMimeType(const std::string& file_path) {
     
     std::string ext = file_path.substr(dot_pos);
     
-    // Convert to lowercase
     for (size_t i = 0; i < ext.length(); ++i) {
         ext[i] = std::tolower(ext[i]);
     }
     
-    // MIME type mapping
     if (ext == ".html" || ext == ".htm") return "text/html";
     if (ext == ".css") return "text/css";
     if (ext == ".js") return "application/javascript";
@@ -182,12 +172,10 @@ std::string HttpResponse::readFile(const std::string& path) {
         return "";
     }
     
-    // Get file size
     file.seekg(0, std::ios::end);
     size_t size = file.tellg();
     file.seekg(0, std::ios::beg);
     
-    // Read file content
     std::string content(size, '\0');
     file.read(&content[0], size);
     
@@ -197,14 +185,12 @@ std::string HttpResponse::readFile(const std::string& path) {
 bool HttpResponse::executeCgi(const std::string& script_path, const std::string& cgi_path, 
                              const std::map<std::string, std::string>& env_vars, 
                              const std::string& request_body) {
-    // Verify script exists
     if (!fileExists(script_path)) {
         setStatus(404, "Not Found");
         setBody("<html><body><h1>404 Not Found</h1><p>CGI script not found</p></body></html>");
         return false;
     }
     
-    // Create pipes for communication
     int pipe_in[2];
     int pipe_out[2];
     
@@ -214,11 +200,9 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
         return false;
     }
     
-    // Fork process
     pid_t pid = fork();
     
     if (pid == -1) {
-        // Fork failed
         close(pipe_in[0]);
         close(pipe_in[1]);
         close(pipe_out[0]);
@@ -229,35 +213,27 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
     }
     
     if (pid == 0) {
-        // Child process
-        close(pipe_in[1]);  // Close write end of input pipe
-        close(pipe_out[0]); // Close read end of output pipe
+        close(pipe_in[1]);
+        close(pipe_out[0]);
         
-        // Redirect stdin and stdout
         dup2(pipe_in[0], STDIN_FILENO);
         dup2(pipe_out[1], STDOUT_FILENO);
         
-        // Close unused pipes
         close(pipe_in[0]);
         close(pipe_out[1]);
         
-        // Set environment variables
         for (std::map<std::string, std::string>::const_iterator it = env_vars.begin(); 
              it != env_vars.end(); ++it) {
             setenv(it->first.c_str(), it->second.c_str(), 1);
         }
         
-        // Execute the CGI script
         execl(cgi_path.c_str(), cgi_path.c_str(), script_path.c_str(), (char*)NULL);
         
-        // If we reach here, exec failed
         exit(1);
     } else {
-        // Parent process
-        close(pipe_in[0]);  // Close read end of input pipe
-        close(pipe_out[1]); // Close write end of output pipe
+        close(pipe_in[0]);
+        close(pipe_out[1]);
         
-        // Send request body to CGI script via stdin (for POST requests)
         if (!request_body.empty()) {
             ssize_t bytes_written = write(pipe_in[1], request_body.c_str(), request_body.length());
             if (bytes_written < 0) {
@@ -267,16 +243,13 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
                 setBody("<html><body><h1>500 Internal Server Error</h1><p>Failed to send data to CGI script</p></body></html>");
                 return false;
             }
-            // Note: Partial writes are acceptable for CGI context, 
-            // but we log if data wasn't completely written
             if ((size_t)bytes_written != request_body.length()) {
                 std::cerr << "Warning: CGI write was partial (" << bytes_written 
                           << "/" << request_body.length() << " bytes)" << std::endl;
             }
         }
-        close(pipe_in[1]); // Close input pipe after sending data
+        close(pipe_in[1]);
         
-        // Read output from CGI
         std::string cgi_output;
         char buffer[1024];
         ssize_t bytes_read;
@@ -286,34 +259,28 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
             cgi_output += buffer;
         }
         
-        // Check for read errors (bytes_read < 0)
         if (bytes_read < 0) {
             std::cerr << "Warning: CGI read error encountered (may be normal if CGI closed pipe)" << std::endl;
-            // Continue processing - partial output is acceptable
         }
         
         close(pipe_out[0]);
         
-        // Wait for child process to finish
         int status;
         waitpid(pid, &status, 0);
         
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-            // Parse CGI output (headers + body)
             size_t header_end = cgi_output.find("\n\n");
             if (header_end == std::string::npos) {
                 header_end = cgi_output.find("\r\n\r\n");
                 if (header_end != std::string::npos) {
-                    header_end += 2; // Skip \r\n
+                    header_end += 2;
                 }
             }
             
             if (header_end != std::string::npos) {
-                // Parse headers
                 std::string headers_part = cgi_output.substr(0, header_end);
                 std::string body_part = cgi_output.substr(header_end + 2);
                 
-                // Parse individual headers
                 std::istringstream header_stream(headers_part);
                 std::string line;
                 bool content_type_set = false;
@@ -326,7 +293,6 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
                         std::string name = line.substr(0, colon_pos);
                         std::string value = line.substr(colon_pos + 1);
                         
-                        // Trim whitespace
                         while (!value.empty() && (value[0] == ' ' || value[0] == '\t')) {
                             value = value.substr(1);
                         }
@@ -341,7 +307,6 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
                     }
                 }
                 
-                // Set default content type if not provided
                 if (!content_type_set) {
                     setHeader("Content-Type", "text/html");
                 }
@@ -349,7 +314,6 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
                 setStatus(200, "OK");
                 setBody(body_part);
             } else {
-                // No headers, treat entire output as body
                 setStatus(200, "OK");
                 setHeader("Content-Type", "text/html");
                 setBody(cgi_output);
@@ -358,7 +322,6 @@ bool HttpResponse::executeCgi(const std::string& script_path, const std::string&
             setHeader("Connection", "close");
             return true;
         } else {
-            // CGI execution failed
             setStatus(500, "Internal Server Error");
             setHeader("Content-Type", "text/html");
             setBody("<html><body><h1>500 Internal Server Error</h1><p>CGI execution failed</p></body></html>");

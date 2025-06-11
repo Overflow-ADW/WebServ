@@ -12,9 +12,8 @@ struct ServerConfig {
     size_t client_max_body_size;
     std::map<int, std::string> error_pages;
     
-    // Constructeur par défaut
     ServerConfig() : port(8080), host("127.0.0.1"), server_name("localhost"), 
-                     root("./www"), index("index.html"), client_max_body_size(1000000) {}
+                   root("./www"), index("index.html"), client_max_body_size(1000000) {}
 };
 
 struct LocationConfig {
@@ -30,7 +29,6 @@ struct LocationConfig {
     std::string redirect_url;
     int redirect_code;
     
-    // Constructeur par défaut
     LocationConfig() : client_max_body_size(0), autoindex(false), redirect_code(0) {}
 };
 

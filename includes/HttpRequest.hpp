@@ -37,7 +37,7 @@ public:
     
     // Utils
     void clear();
-    void print() const; // Pour debug
+    void print() const;
     
 private:
     std::string trim(const std::string& str);

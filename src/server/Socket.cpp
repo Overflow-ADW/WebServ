@@ -63,7 +63,7 @@ int Socket::acceptConnection() {
     int client_fd = accept(_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            return -1; // Pas de connexion en attente
+            return -1;
         }
         throw std::runtime_error("Failed to accept connection");
     }

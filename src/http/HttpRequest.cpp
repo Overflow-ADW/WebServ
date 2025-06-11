@@ -11,28 +11,22 @@ bool HttpRequest::parseRequest(const std::string& raw_request) {
         return false;
     }
     
-    // Find the end of headers (double CRLF or double LF)
     size_t headers_end = raw_request.find("\r\n\r\n");
     bool crlf_format = true;
     if (headers_end == std::string::npos) {
         headers_end = raw_request.find("\n\n");
         crlf_format = false;
-        if (headers_end == std::string::npos) {
-            // No body, just headers
+        if (headers_end == std::string::npos)
             headers_end = raw_request.length();
-        }
     }
     
-    // Extract headers part
     std::string headers_part = raw_request.substr(0, headers_end);
     
-    // Split headers into lines
     std::vector<std::string> lines;
     std::stringstream ss(headers_part);
     std::string line;
     
     while (std::getline(ss, line)) {
-        // Remove \r if present (Windows line endings)
         if (!line.empty() && line[line.length() - 1] == '\r') {
             line = line.substr(0, line.length() - 1);
         }
@@ -43,74 +37,63 @@ bool HttpRequest::parseRequest(const std::string& raw_request) {
         return false;
     }
     
-    // Parse request line (first line)
     parseRequestLine(lines[0]);
     
-    // Parse headers
     for (size_t i = 1; i < lines.size() && !lines[i].empty(); ++i) {
         parseHeader(lines[i]);
     }
     
-    // Extract body if present (after headers)
     if (headers_end < raw_request.length()) {
-        size_t body_start = headers_end + (crlf_format ? 4 : 2); // Skip \r\n\r\n or \n\n
+        size_t body_start = headers_end + (crlf_format ? 4 : 2);
         if (body_start < raw_request.length()) {
             _body = raw_request.substr(body_start);
         }
     }
     
-    // Check if request is complete
-    if (!_method.empty() && !_path.empty() && !_version.empty()) {
-        _is_complete = true;
-        return true;
+    if (_method.empty() || _path.empty() || _version.empty()) {
+        return false;
     }
-    
-    return false;
+
+    _is_complete = true;
+    return true;
 }
 
 void HttpRequest::parseRequestLine(const std::string& line) {
-    // Parse: METHOD /path HTTP/version
     std::istringstream iss(line);
     
     if (!(iss >> _method >> _path >> _version)) {
-        std::cerr << "❌ Invalid request line: " << line << std::endl;
+        std::cerr << "Invalid request line: " << line << std::endl;
         return;
     }
     
-    // Basic validation
     if (_method.empty() || _path.empty() || _version.empty()) {
-        std::cerr << "❌ Incomplete request line: " << line << std::endl;
+        std::cerr << "Incomplete request line: " << line << std::endl;
         return;
     }
     
-    // Validate HTTP version
     if (_version != "HTTP/1.1" && _version != "HTTP/1.0") {
-        std::cerr << "❌ Unsupported HTTP version: " << _version << std::endl;
+        std::cerr << "Unsupported HTTP version: " << _version << std::endl;
     }
     
-    // Normalize method to uppercase
     for (size_t i = 0; i < _method.length(); ++i) {
         _method[i] = std::toupper(_method[i]);
     }
 }
 
 void HttpRequest::parseHeader(const std::string& line) {
-    // Parse: Header-Name: Header-Value
     size_t colon_pos = line.find(':');
     if (colon_pos == std::string::npos) {
-        std::cerr << "❌ Invalid header format: " << line << std::endl;
+        std::cerr << "Invalid header format: " << line << std::endl;
         return;
     }
     
     std::string name = line.substr(0, colon_pos);
     std::string value = line.substr(colon_pos + 1);
     
-    // Trim whitespace
     name = trim(name);
     value = trim(value);
     
     if (!name.empty()) {
-        // Convert header name to lowercase for case-insensitive lookup
         for (size_t i = 0; i < name.length(); ++i) {
             name[i] = std::tolower(name[i]);
         }
@@ -196,7 +179,7 @@ void HttpRequest::print() const {
     
     if (!_body.empty()) {
         std::cout << BLUE << "Body (" << _body.length() << " bytes):" << RESET << std::endl;
-        std::cout << _body.substr(0, 200); // Show first 200 chars
+        std::cout << _body.substr(0, 200);
         if (_body.length() > 200) {
             std::cout << "...";
         }
