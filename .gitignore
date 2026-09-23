@@ -1,0 +1,5 @@
+obj/
+webserv
+randomUploads/*
+!randomUploads/.gitkeep
+.DS_Store
