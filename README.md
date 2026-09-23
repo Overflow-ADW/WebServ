@@ -18,6 +18,23 @@ The goal is not to replace a production web server such as Nginx. The point is t
 - Directory auto-index support
 - Multiple server blocks / listening ports
 
+## Request flow
+
+```mermaid
+flowchart LR
+    A[Client] --> B[TCP socket]
+    B --> C[HTTP request parser]
+    C --> D{Route / location}
+    D --> E[Static file]
+    D --> F[Upload handler]
+    D --> G[CGI process]
+    E --> H[Response builder]
+    F --> H
+    G --> H
+    H --> I[HTTP response]
+    I --> A
+```
+
 ## Project structure
 
 ```text
